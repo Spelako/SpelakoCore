@@ -1,0 +1,3 @@
+/.*
+U:http://localhost:8080/?client=QRSpeed&fromAccount=%QQ%&fromGroup=%Groupid%&msg=$URLEncoder %参数-1%$
+$访问 %U%$
