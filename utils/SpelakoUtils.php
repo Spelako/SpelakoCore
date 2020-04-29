@@ -46,6 +46,23 @@ function fsize($path) {
 	else return '文件不存在';
 }
 
+function ddump($path) {
+	if(is_dir($path)) {
+		$size = 0;
+		$handle = opendir($path);
+		while (($item = readdir($handle)) !== false) {
+			if ($item == '.' || $item == '..') continue;
+			$_path = $path . '/' . $item;
+			if (is_dir($_path)) $size += ddump($_path);
+			if (is_file($_path)) $size += filesize($_path);
+			echo $_path.format_size($size).PHP_EOL;
+		}
+		closedir($handle);
+		return $size;
+	}
+	else echo '目录不存在';
+}
+
 function dsize($path, $noformat = false) {
 	if(is_dir($path)) {
 		$size = 0;

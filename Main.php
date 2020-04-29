@@ -238,7 +238,8 @@ switch($args[0]){
 		'saves/ - '.dsize('saves/').PHP_EOL.
 		'	blacklist/ - '.dsize('saves/blacklist/').PHP_EOL.
 		'		user.txt - '.fsize('saves/blacklist/user.txt').PHP_EOL.
-		'		group.txt - '.fsize('saves/blacklist/group.txt');
+		'		group.txt - '.fsize('saves/blacklist/group.txt').PHP_EOL.
+		ddump('cache/');
 		break;
 	case '/ignore':
 		if(!in_array($_GET['fromAccount'], $staff)) exit();
