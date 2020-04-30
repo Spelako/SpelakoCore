@@ -46,21 +46,36 @@ function fsize($path) {
 	else return '文件不存在';
 }
 
-function ddump($path) {
+function ddump_($path) {
 	if(is_dir($path)) {
 		$size = 0;
 		$handle = opendir($path);
-		while (($item = readdir($handle)) !== false) {
-			if ($item == '.' || $item == '..') continue;
-			$_path = $path . '/' . $item;
-			if (is_dir($_path)) $size += ddump($_path);
-			if (is_file($_path)) $size += filesize($_path);
-			echo $_path.format_size($size).PHP_EOL;
+		while (($fl = readdir($handle)) !== false) {
+			if ($fl == '.' || $fl == '..') continue;
+			$item = $path.DIRECTORY_SEPARATOR.$fl;
+			echo '	';
+			if (is_dir($item)) {
+				$size += ddump_($item);
+				echo $fl.' - '.format_size($size).PHP_EOL;
+			}
+			if (is_file($item)){
+				$size += filesize($item);
+				echo $fl.' - '.format_size($size).PHP_EOL;
+			}
 		}
 		closedir($handle);
 		return $size;
 	}
 	else echo '目录不存在';
+}
+
+function ddump($path) {
+	ob_start();
+	ddump_($path);
+	$contents = ob_get_contents();
+	ob_end_clean();
+//	$contents = str_replace('.	', PHP_EOL, $contents);
+	echo $contents;
 }
 
 function dsize($path, $noformat = false) {
