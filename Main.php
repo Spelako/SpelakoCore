@@ -226,20 +226,12 @@ switch($args[0]){
 		break;
 	case '/botstats':
 		if(!in_array($_GET['fromAccount'], $staff)) exit();
+		echo '存储空间的使用情况如下 - ';
+		ddump(dirToArray('cache/'));
 		echo
-		'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
-		'有 '.count(getBlacklist()).' 个用户及 '.count(getBlacklist(true)).' 个群聊被列入黑名单.'.PHP_EOL.
-		'存储空间使用情况如下:'.PHP_EOL.
-		'cache/ - '.dsize('cache/').PHP_EOL.
-		'	hypixel/ - '.dsize('cache/hypixel/').PHP_EOL.
-		'		guild/ - '.dsize('cache/hypixel/guild/').PHP_EOL.
-		'		player/ - '.dsize('cache/hypixel/player/').PHP_EOL.
-		'	cooldown.json - '.fsize('cache/cooldown.json').PHP_EOL.
-		'saves/ - '.dsize('saves/').PHP_EOL.
-		'	blacklist/ - '.dsize('saves/blacklist/').PHP_EOL.
-		'		user.txt - '.fsize('saves/blacklist/user.txt').PHP_EOL.
-		'		group.txt - '.fsize('saves/blacklist/group.txt').PHP_EOL.
-		ddump('cache/');
+		PHP_EOL.'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
+		'有 '.count(getBlacklist()).' 个用户及 '.count(getBlacklist(true)).' 个群聊被列入黑名单.';
+		
 		break;
 	case '/ignore':
 		if(!in_array($_GET['fromAccount'], $staff)) exit();

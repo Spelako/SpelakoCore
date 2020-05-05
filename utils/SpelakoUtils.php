@@ -46,35 +46,66 @@ function fsize($path) {
 	else return '文件不存在';
 }
 
-function ddump_($path) {
-	if(is_dir($path)) {
-		$size = 0;
-		$handle = opendir($path);
-		while (($fl = readdir($handle)) !== false) {
-			if ($fl == '.' || $fl == '..') continue;
-			$item = $path.DIRECTORY_SEPARATOR.$fl;
-			echo '	';
-			if (is_dir($item)) {
-				$size += ddump_($item);
-				echo $fl.' - '.format_size($size).PHP_EOL;
+function dirToArray($dir) {
+  
+	$result = array();
+ 
+	$cdir = scandir($dir);
+	foreach ($cdir as $key => $value)
+	{
+		if (!in_array($value,array(".","..")))
+		{
+			if (is_dir($dir . DIRECTORY_SEPARATOR . $value))
+			{
+				$result[$value] = dirToArray($dir . DIRECTORY_SEPARATOR . $value);
 			}
-			if (is_file($item)){
-				$size += filesize($item);
-				echo $fl.' - '.format_size($size).PHP_EOL;
+			else
+			{
+				$result[] = $value;
 			}
 		}
-		closedir($handle);
-		return $size;
 	}
-	else echo '目录不存在';
+	return $result;
+}
+
+function info_item($param, $i = 0)
+{
+    switch (gettype($param)) {
+        case 'array':
+			$space = '';
+			$num = $i;
+			while ($num) {
+				$space .= '	';
+				$num--;
+			}
+			echo ''.count($param).' 个对象:'.PHP_EOL;
+			foreach ($param as $key => $item) {
+				echo $space;
+				if(gettype($key) == 'string') {
+					echo $key.'/ - ';
+				}
+				else if($key > 4) {
+					echo '...';
+					break;
+				}
+				info_item($item, $i+1);
+			}
+			echo $space;
+            break;
+        default:
+            echo $param;
+            break;
+    }
+    echo PHP_EOL;
 }
 
 function ddump($path) {
 	ob_start();
-	ddump_($path);
+	info_item($path);
 	$contents = ob_get_contents();
 	ob_end_clean();
-//	$contents = str_replace('.	', PHP_EOL, $contents);
+	$contents = preg_replace('@(\n\s+(?=\n))@', '', $contents);
+	$contents = preg_replace('@\n@', '\n| ', $contents);
 	echo $contents;
 }
 
