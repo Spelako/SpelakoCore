@@ -169,6 +169,18 @@ function blacklistRemove(string $number, bool $isGroup = false){
 	}
 }
 
+// 管理员模块
+function getStaffs(){
+	$contents = rfile('saves/staff.txt');
+	$list = explode(PHP_EOL, $contents);
+	$list = array_filter($list);
+	return $list;
+}
+function isStaff($account){
+	return in_array($account, getStaffs());
+}
+
+
 // 冷却模块
 function getCooldowns(){
 	$contents = rfile('cache/cooldown.json');

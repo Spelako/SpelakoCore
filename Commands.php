@@ -1,10 +1,11 @@
 <?php
-$args_src = explode(' ', $_GET['msg']);
-$args = array_values(array_filter($args_src));
+function onMessage($fromAccount = 'unknown', $fromGroup = 'unknown', $msg = '/help') {
+$args_nofilter = explode(' ', $msg);
+$args = array_values(array_filter($args_nofilter));
 
 $args[0] = strtolower($args[0]);
 
-switch($args[0]){
+switch($args[0]) {
 	// 以下为普通指令
 	case '/help':
 		echo
@@ -17,9 +18,9 @@ switch($args[0]){
 		'/hypixel <玩家> [分类] - 获取指定玩家的 Hypixel 信息';
 		break;
 	case '/mojang':
-		if(!getAvailability($_GET['fromAccount'])) exit('你查询的频率过高, 喝杯茶休息一下吧!');
+		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
 		if(isset($args[1])){
-			userExecute($_GET['fromAccount']);
+			userExecute($fromAccount);
 			require_once('utils/MojangStats.php');
 			$p = mojang_getstats($args[1]);
 			if($p){
@@ -44,9 +45,9 @@ switch($args[0]){
 		}
 		break;
 	case '/server':
-		if(!getAvailability($_GET['fromAccount'])) exit('你查询的频率过高, 喝杯茶休息一下吧!');
+		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
 		if(isset($args[1])){
-			userExecute($_GET['fromAccount']);
+			userExecute($fromAccount);
 			require_once('utils/MCPing.php');
 			!isset($args[2]) && $args[2] = 25565;
 			$p = new MCPing();
@@ -70,9 +71,9 @@ switch($args[0]){
 		}
 		break;
 	case '/hypixel':
-		if(!getAvailability($_GET['fromAccount'])) exit('你查询的频率过高, 喝杯茶休息一下吧!');
+		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
 		if(isset($args[1])){
-			userExecute($_GET['fromAccount']);
+			userExecute($fromAccount);
 			require_once('utils/HypixelStats.php');
 			$apiKey = 'a765d546-4697-4e47-9b90-7e9c27b001b7';
 			$p = hypixel_getstats($apiKey, $args[1]);
@@ -164,8 +165,8 @@ switch($args[0]){
 		}
 		break;
 	case '/virus':
-		if(!getAvailability($_GET['fromAccount'])) exit('你查询的频率过高, 喝杯茶休息一下吧!');
-		userExecute($_GET['fromAccount']);
+		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
+		userExecute($fromAccount);
 		require_once('utils/VirusTrack.php');
 		if(isset($args[1])){
 			$province = virus_getProvinceStats($args[1]);
@@ -192,8 +193,7 @@ switch($args[0]){
 		echo
 		'General:'.PHP_EOL.
 		'	Dev: Peaksol'.PHP_EOL.
-		'	Version: '.$version.PHP_EOL.
-		'	Platform: '.$_GET['client'].PHP_EOL.
+		'	Version: 1.0.0'.$version.PHP_EOL.
 		'	First Created: 2019/6/18'.PHP_EOL.
 		'Credits:'.PHP_EOL.
 		'	Hypixel Stats API by Hypixel'.PHP_EOL.
@@ -203,7 +203,7 @@ switch($args[0]){
 		break;
 	// 以下为机器人管理员指令
 	case '/admin':
-		if(!in_array($_GET['fromAccount'], $staff)) exit();
+		if(!isStaff($fromAccount)) exit();
 		echo
 		'Spelako 管理员指令列表:'.PHP_EOL.
 		'/admin - 查看此列表'.PHP_EOL.
@@ -213,10 +213,10 @@ switch($args[0]){
 		'/unignore ... - 解除对指定用户/指定群的指令的屏蔽';
 		break;
 	case '/echo':
-		if(!in_array($_GET['fromAccount'], $staff)) exit();
-		if(isset($args_src[1])){
-			unset($args_src[0]);
-			echo implode(' ', $args_src);
+		if(!isStaff($fromAccount)) exit();
+		if(isset($args_nofilter[1])){
+			unset($args_nofilter[0]);
+			echo implode(' ', $args_nofilter);
 		}
 		else{
 			echo
@@ -225,7 +225,7 @@ switch($args[0]){
 		}
 		break;
 	case '/botstats':
-		if(!in_array($_GET['fromAccount'], $staff)) exit();
+		if(!isStaff($fromAccount)) exit();
 		echo '存储空间的使用情况如下 - ';
 		ddump(dirToArray('cache/'));
 		echo
@@ -234,7 +234,7 @@ switch($args[0]){
 		
 		break;
 	case '/ignore':
-		if(!in_array($_GET['fromAccount'], $staff)) exit();
+		if(!isStaff($fromAccount)) exit();
 		switch($args[1]){
 			case 'user':
 				if(isset($args[2]))
@@ -252,8 +252,8 @@ switch($args[0]){
 					else
 						echo ('该群已经被 Spelako 屏蔽.');
 				else
-					if(blacklistAdd($_GET['fromGroup'], true))
-						echo ('Spelako 将不再处理当前群('.$_GET['fromGroup'].')的指令.');
+					if(blacklistAdd($fromGroup, true))
+						echo ('Spelako 将不再处理当前群('.$fromGroup.')的指令.');
 					else
 						echo ('当前群已经被 Spelako 屏蔽.');
 					break;
@@ -263,7 +263,7 @@ switch($args[0]){
 		}
 		break;
 	case '/unignore':
-		if(!in_array($_GET['fromAccount'], $staff)) exit();
+		if(!isStaff($fromAccount)) exit();
 		switch($args[1]){
 			case 'user':
 				if(isset($args[2]))
@@ -295,5 +295,6 @@ switch($args[0]){
 			'你可能想输入此命令: /'.$sCmd.PHP_EOL.
 			'但是你将其输入为了 "'.$args[0].'"';
 		}
+}
 }
 ?>
