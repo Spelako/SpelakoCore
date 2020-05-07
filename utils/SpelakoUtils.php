@@ -68,47 +68,6 @@ function dirToArray($dir) {
 	return $result;
 }
 
-function info_item($param, $i = 0)
-{
-    switch (gettype($param)) {
-        case 'array':
-			$space = '';
-			$num = $i;
-			while ($num) {
-				$space .= '	';
-				$num--;
-			}
-			echo ''.count($param).' 个对象:'.PHP_EOL;
-			foreach ($param as $key => $item) {
-				echo $space;
-				if(gettype($key) == 'string') {
-					echo $key.'/ - ';
-				}
-				else if($key > 4) {
-					echo '...';
-					break;
-				}
-				info_item($item, $i+1);
-			}
-			echo $space;
-            break;
-        default:
-            echo $param;
-            break;
-    }
-    echo PHP_EOL;
-}
-
-function ddump($path) {
-	ob_start();
-	info_item($path);
-	$contents = ob_get_contents();
-	ob_end_clean();
-	$contents = preg_replace('@(\n\s+(?=\n))@', '', $contents);
-	$contents = preg_replace('@\n@', '\n| ', $contents);
-	echo $contents;
-}
-
 function dsize($path, $noformat = false) {
 	if(is_dir($path)) {
 		$size = 0;

@@ -1,5 +1,7 @@
 <?php
 function onMessage($fromAccount = 'unknown', $fromGroup = 'unknown', $msg = '/help') {
+
+if(isBlacklisted($fromGroup, true) || isBlacklisted($fromAccount)) exit();
 $args_nofilter = explode(' ', $msg);
 $args = array_values(array_filter($args_nofilter));
 
@@ -226,12 +228,10 @@ switch($args[0]) {
 		break;
 	case '/botstats':
 		if(!isStaff($fromAccount)) exit();
-		echo '存储空间的使用情况如下 - ';
-		ddump(dirToArray('cache/'));
 		echo
-		PHP_EOL.'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
+		'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
+		'缓存文件共 '.'XXX'.' 个, 占用存储空间 '.dsize('cache/').PHP_EOL.
 		'有 '.count(getBlacklist()).' 个用户及 '.count(getBlacklist(true)).' 个群聊被列入黑名单.';
-		
 		break;
 	case '/ignore':
 		if(!isStaff($fromAccount)) exit();
@@ -296,5 +296,6 @@ switch($args[0]) {
 			'但是你将其输入为了 "'.$args[0].'"';
 		}
 }
+
 }
 ?>
