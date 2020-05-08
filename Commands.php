@@ -77,7 +77,7 @@ switch($args[0]) {
 		if(isset($args[1])){
 			userExecute($fromAccount);
 			require_once('utils/HypixelStats.php');
-			$apiKey = 'a765d546-4697-4e47-9b90-7e9c27b001b7';
+			$apiKey = 'a765d546-4697-4e47-9b90-7e9c27b001b7'; // 在此输入 Hypixel API Key
 			$p = hypixel_getstats($apiKey, $args[1]);
 			if($p){
 				switch(strtolower($args[2])){
