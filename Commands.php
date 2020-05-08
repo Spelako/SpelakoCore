@@ -230,7 +230,7 @@ switch($args[0]) {
 		if(!isStaff($fromAccount)) exit();
 		echo
 		'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
-		'缓存文件共 '.'XXX'.' 个, 占用存储空间 '.dsize('cache/').PHP_EOL.
+		'缓存文件共 '.dcount('cache/').' 个, 占用存储空间 '.dsize('cache/').'.'.PHP_EOL.
 		'有 '.count(getBlacklist()).' 个用户及 '.count(getBlacklist(true)).' 个群聊被列入黑名单.';
 		break;
 	case '/ignore':

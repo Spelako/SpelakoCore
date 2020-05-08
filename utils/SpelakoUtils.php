@@ -46,28 +46,6 @@ function fsize($path) {
 	else return '文件不存在';
 }
 
-function dirToArray($dir) {
-  
-	$result = array();
- 
-	$cdir = scandir($dir);
-	foreach ($cdir as $key => $value)
-	{
-		if (!in_array($value,array(".","..")))
-		{
-			if (is_dir($dir . DIRECTORY_SEPARATOR . $value))
-			{
-				$result[$value] = dirToArray($dir . DIRECTORY_SEPARATOR . $value);
-			}
-			else
-			{
-				$result[] = $value;
-			}
-		}
-	}
-	return $result;
-}
-
 function dsize($path, $noformat = false) {
 	if(is_dir($path)) {
 		$size = 0;
@@ -83,6 +61,20 @@ function dsize($path, $noformat = false) {
 	}
 	else return '目录不存在';
 }
+
+function dcount($path){
+        $num=0;
+        $arr = glob($path);
+        foreach ($arr as $v) {
+            if(is_file($v)) {
+                $num++;
+            }
+            else {
+                $num += dcount($v."/*");
+            }
+        }
+        return $num;
+    }
 
 function isOutdated($path, $timeout) {
 	if(file_exists($path)) {
