@@ -9,7 +9,7 @@ $GLOBALS['stream_opts'] = [
 date_default_timezone_set('PRC');
 
 // 文件操作模块
-function rfile($path) {
+function rfile($path) { // 读文件
 	if(file_exists($path))
 		$f = file_get_contents($path);
 	else
@@ -17,7 +17,7 @@ function rfile($path) {
 	return $f;
 }
 
-function wfile($path, $contents) {
+function wfile($path, $contents) { // 写文件
 	if(!file_exists($path)){
 		$spl = explode('/', $path);
 		$dir = implode('/', array_slice($spl, 0, count($spl) - 1));
@@ -28,7 +28,7 @@ function wfile($path, $contents) {
 	file_put_contents($path, $contents);
 }
 
-function format_size($byte) {
+function format_size($byte) { // 格式化大小
 	$a = array('字节', 'KB', 'MB', 'GB', 'TB', 'PB');
 	$pos = 0;
 	while ($byte >= 1024) {
@@ -38,7 +38,7 @@ function format_size($byte) {
 	return round($byte, 2).' '.$a[$pos];
 }
 
-function fsize($path) {
+function fsize($path) { // 取格式化的文件大小
 	if(file_exists($path)) {
 		$size = filesize($path);
 		return format_size($size);
@@ -46,7 +46,7 @@ function fsize($path) {
 	else return '文件不存在';
 }
 
-function dsize($path, $noformat = false) {
+function dsize($path, $noformat = false) { // 取目录大小
 	if(is_dir($path)) {
 		$size = 0;
 		$handle = opendir($path);
@@ -62,19 +62,36 @@ function dsize($path, $noformat = false) {
 	else return '目录不存在';
 }
 
-function dcount($path){
-        $num=0;
-        $arr = glob($path);
-        foreach ($arr as $v) {
-            if(is_file($v)) {
-                $num++;
-            }
-            else {
-                $num += dcount($v."/*");
-            }
-        }
-        return $num;
-    }
+function dcount($path) { // 取目录文件数 
+		$num=0;
+		$arr = glob($path);
+		foreach ($arr as $v) {
+			if(is_file($v)) {
+				$num++;
+			}
+			else {
+				$num += dcount($v."/*");
+			}
+		}
+		return $num;
+}
+
+function deldir($path){ // 清空目录
+	if(is_dir($path)) {
+		$p = scandir($path);
+		foreach($p as $val) {
+			if($val != '.' && $val != '..') {
+				if(is_dir($path.$val)) {
+					deldir($path.$val.'/');
+					@rmdir($path.$val.'/');
+				}
+				else{
+					unlink($path.$val);
+				}
+			}
+		}
+	}
+}
 
 function isOutdated($path, $timeout) {
 	if(file_exists($path)) {

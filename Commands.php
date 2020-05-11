@@ -77,7 +77,7 @@ switch($args[0]) {
 		if(isset($args[1])){
 			userExecute($fromAccount);
 			require_once('utils/HypixelStats.php');
-			$apiKey = 'a765d546-4697-4e47-9b90-7e9c27b001b7'; // 在此输入 Hypixel API Key
+			$apiKey = '46e661fb-257f-4ccc-a3b0-dff3751cf056'; // 在此输入 Hypixel API Key
 			$p = hypixel_getstats($apiKey, $args[1]);
 			if($p){
 				switch(strtolower($args[2])){
@@ -211,6 +211,7 @@ switch($args[0]) {
 		'/admin - 查看此列表'.PHP_EOL.
 		'/echo <文本> - 使机器人复读消息'.PHP_EOL.
 		'/botstats - 获取机器人的相关统计数据'.PHP_EOL.
+		'/clearcache - 清理所有 cache 目录下的缓存数据'.PHP_EOL.
 		'/ignore ... - 屏蔽指定用户/指定(或当前)群的指令'.PHP_EOL.
 		'/unignore ... - 解除对指定用户/指定群的指令的屏蔽';
 		break;
@@ -232,6 +233,11 @@ switch($args[0]) {
 		'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
 		'缓存文件共 '.dcount('cache/').' 个, 占用存储空间 '.dsize('cache/').'.'.PHP_EOL.
 		'有 '.count(getBlacklist()).' 个用户及 '.count(getBlacklist(true)).' 个群聊被列入黑名单.';
+		break;
+	case '/clearcache':
+		if(!isStaff($fromAccount)) exit();
+		deldir('cache/');
+		echo '已清除所有缓存文件.';
 		break;
 	case '/ignore':
 		if(!isStaff($fromAccount)) exit();
