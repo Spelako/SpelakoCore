@@ -186,4 +186,13 @@ function similarCommand($findBy, array $cmdList) {
 	$bestMatch = array_search($bestValue, $sCmdList);
 	return ($bestValue > 70 && $bestValue != 100) ? $bestMatch : false;
 }
+
+// 其他
+function getBinArr($dec, $length) {
+	$bin = decbin($dec);
+	if(strlen($bin) > $length)
+		return false;
+	else
+		return str_split(str_pad($bin, $length, '0'));
+}
 ?>

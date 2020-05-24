@@ -77,19 +77,29 @@ switch($args[0]) {
 		if(isset($args[1])){
 			userExecute($fromAccount);
 			require_once('utils/HypixelStats.php');
-			$apiKey = '46e661fb-257f-4ccc-a3b0-dff3751cf056'; // 在此输入 Hypixel API Key
+			
+			$apiKey = '[在此输入 Hypixel API Key]';
 			$p = hypixel_getstats($apiKey, $args[1]);
 			if($p){
+				$cancelled = getCancelledCategories($p);
 				switch(strtolower($args[2])){
 					case 'blitzsg':
 					case 'bsg':
 					case 'hungergames':
+						if(in_array('bsg', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Blitz SG 信息的查询.';
+							exit();
+						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Biltz SG 信息:'.PHP_EOL.
 						'游玩次数: '.$p['player']['stats']['HungerGames']['games_played'].' | 硬币: '.$p['player']['stats']['HungerGames']['coins'].' | 开箱数: '.$p['player']['stats']['HungerGames']['chests_opened'].PHP_EOL.
 						'击杀: '.$p['player']['stats']['HungerGames']['kills'].' | 死亡: '.$p['player']['stats']['HungerGames']['deaths'].' | K/D: '.round($p['player']['stats']['HungerGames']['kills']/$p['player']['stats']['HungerGames']['deaths'], 3);
 						break;
 					case 'uhc':
+						if(in_array('uhc', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 UHC 信息的查询.';
+							exit();
+						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 UHC 信息:'.PHP_EOL.
 						'分数: '.$p['player']['stats']['UHC']['score'].' | 硬币: '.$p['player']['stats']['UHC']['coins'].' | 胜场: '.$p['player']['stats']['UHC']['wins'].PHP_EOL.
@@ -97,6 +107,10 @@ switch($args[0]) {
 						break;
 					case 'megawalls':
 					case 'mw':
+						if(in_array('mw', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Mega Walls 信息的查询.';
+							exit();
+						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Mega Walls 信息:'.PHP_EOL.
 						'凋零伤害: '.$p['player']['stats']['Walls3']['wither_damage'].' | 职业: '.$p['player']['stats']['Walls3']['chosen_class'].' | 硬币: '.$p['player']['stats']['Walls3']['coins'].PHP_EOL.
@@ -106,6 +120,10 @@ switch($args[0]) {
 						break;
 					case 'skywars':
 					case 'sw':
+						if(in_array('sw', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Skywars 信息的查询.';
+							exit();
+						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Skywars 信息:'.PHP_EOL.
 						'等级: '.getLevelSW($p['player']['stats']['SkyWars']['levelFormatted']).' | 硬币: '.$p['player']['stats']['SkyWars']['coins'].' | 助攻: '.$p['player']['stats']['SkyWars']['assists'].PHP_EOL.
@@ -114,6 +132,10 @@ switch($args[0]) {
 						break;
 					case 'bedwars':
 					case 'bw':
+						if(in_array('bw', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Bedwars 信息的查询.';
+							exit();
+						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Bedwars 信息:'.PHP_EOL.
 						'等级: '.$p['player']['achievements']['bedwars_level'].' | 硬币: '.$p['player']['stats']['Bedwars']['coins'].' | 拆床: '.$p['player']['stats']['Bedwars']['beds_broken_bedwars'].PHP_EOL.
@@ -123,6 +145,10 @@ switch($args[0]) {
 						break;
 					case 'guild':
 					case 'g':
+						if(in_array('g', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 公会 信息的查询.';
+							exit();
+						}
 						$g = hypixel_getguild($apiKey, $p['player']['uuid']);
 						if($g) {
 							echo

@@ -81,4 +81,21 @@ function getLevelGuild($exp) {
 	}
 	return -1;
 }
+
+// 其他
+function getCancelledCategories($player) {
+	$index = array('bw', 'sw', 'uhc', 'mw', 'bsg', 'g');
+
+	$src = $player['player']['socialMedia']['links']['DISCORD'];
+	if(substr($src, 0, 8) == 'Spelako#') {
+		$code = getBinArr(substr($src, 8), 6);
+		foreach ($code as $k => $v) {
+			if($v) $result[] = $index[$k];
+		}
+		return $result;
+	}
+	else {
+		return false;
+	}
+}
 ?>
