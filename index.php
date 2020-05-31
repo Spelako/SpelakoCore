@@ -1,5 +1,6 @@
 <?php
-header('content-type:text/plain;charset=utf-8');
+header('Content-Type: text/plain; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
 
 require_once('utils/SpelakoUtils.php'); // Spelako 函数库.
 
