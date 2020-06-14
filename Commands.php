@@ -17,7 +17,8 @@ switch($args[0]) {
 		'/virus [省份] - 查询新型肺炎的实时动态'.PHP_EOL.
 		'/mojang <玩家/UUID> - 获取指定玩家的 Mojang 账号信息'.PHP_EOL.
 		'/server <地址> [端口] - 获取指定地址的 Minecraft 服务器信息'.PHP_EOL.
-		'/hypixel <玩家> [分类] - 获取指定玩家的 Hypixel 信息';
+		'/hypixel <玩家> [分类] - 获取指定玩家的 Hypixel 信息'.PHP_EOL.
+		'/syuu <user/lb> ... - 获取 SyuuNet 的玩家信息或排行榜';
 		break;
 	case '/mojang':
 		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
@@ -192,6 +193,70 @@ switch($args[0]) {
 			'- guild, g';
 		}
 		break;
+	case '/syuu':
+		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
+		require_once('utils/SyuuStats.php');
+
+		switch($args[1]) {
+			case 'user':
+				if(isset($args[2])) {
+					userExecute($fromAccount);
+					$start = microtime(true);
+					$p = syuu_getparsedplayerstats($args[2]);
+					if($p) {
+						echo($args[2].' 的 SyuuNet 排位信息:');
+						foreach($p['RankedData'] as $k => $v) {
+							echo PHP_EOL.'['.$k.'] Elo: '.$v['Elo'].' | 胜: '.$v['Win'].' | 败: '.$v['Lose'];
+						}
+						echo (PHP_EOL.'命令用时: '.(microtime(true) - $start));
+					}
+					else {
+						echo('无法获取此玩家的信息.');
+					}
+				}
+				else {
+					echo('正确用法: /syuu user <玩家>');
+				}
+				break;
+			case 'lb':
+				if(isset($args[2])) {
+					userExecute($fromAccount);
+					$start = microtime(true);
+					$lb = syuu_getleaderboard_practice();
+					if($lb) {
+						$category = syuu_getcategoryname($args[2]);
+						if(!$category) {
+							$category = 'Sharp2Prot2';
+							echo '未知的分类, 已跳转至 Sharp2Prot2 分类.'.PHP_EOL;
+						}
+						echo 'SyuuNet 的 '.$category.' 排行榜:'.PHP_EOL;
+						foreach($lb[$category] as $k => $v) {
+							echo ($k + 1).'. '.$v['lastknownname'].' - '.$v['rankedelo'];
+							if($k != count($lb[$category]) -1) echo PHP_EOL;
+						}
+						echo(PHP_EOL.'命令用时: '.(microtime(true) - $start));
+					}
+					else {
+						echo('无法解析来自 SyuuNet 的数据.');
+					}
+				}
+				else {
+					echo
+					'正确用法: /syuu lb <分类>'.PHP_EOL.
+					'"分类" 可以是下列之一:'.PHP_EOL.
+					'- sharp2prot2, s2p2'.PHP_EOL.
+					'- archer, bow'.PHP_EOL.
+					'- nodelay, combo'.PHP_EOL.
+					'- builduhc, buhc'.PHP_EOL.
+					'- sumo'.PHP_EOL.
+					'- spleef';
+				}
+				break;
+			default:
+				echo
+				'正确用法: /syuu <user/lb> ...';
+		}
+		break;
 	case '/virus':
 		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
 		userExecute($fromAccount);
@@ -221,7 +286,7 @@ switch($args[0]) {
 		echo
 		'General:'.PHP_EOL.
 		'	Dev: Peaksol'.PHP_EOL.
-		'	Version: 1.0.0'.$version.PHP_EOL.
+		'	Version: 1.1.0'.$version.PHP_EOL.
 		'	First Created: 2019/6/18'.PHP_EOL.
 		'Credits:'.PHP_EOL.
 		'	Hypixel Stats API by Hypixel'.PHP_EOL.
@@ -321,7 +386,7 @@ switch($args[0]) {
 		}
 		break;
 	default:
-		$sCmd = similarCommand($args[0], array('help', 'mojang', 'server', 'hypixel', 'virus', 'spelako', 'skyblock', 'lv', 'stats'));
+		$sCmd = similarCommand($args[0], array('help', 'mojang', 'server', 'hypixel', 'syuu', 'virus', 'spelako', 'skyblock', 'lv', 'stats'));
 		if($sCmd) {
 			echo
 			'你可能想输入此命令: /'.$sCmd.PHP_EOL.

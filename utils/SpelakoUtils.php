@@ -4,6 +4,9 @@ $GLOBALS['stream_opts'] = [
 	'ssl' => [
 		'verify_peer' => false,
 		'verify_peer_name' => false
+	],
+	'http' => [
+		'timeout' => 20
 	]
 ];
 date_default_timezone_set('PRC');

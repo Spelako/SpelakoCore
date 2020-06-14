@@ -1,4 +1,5 @@
 <?php
+set_time_limit(30);
 header('Content-Type: text/plain; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
