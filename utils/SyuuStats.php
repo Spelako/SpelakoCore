@@ -58,23 +58,4 @@ function syuu_getcategoryname($category) {
 		}
 	}
 }
-
-global $stream_opts;
-global $stream_opts_2;
-
-$GLOBALS['stream_opts'] = [
-	'ssl' => [
-		'verify_peer' => false,
-		'verify_peer_name' => false
-	],
-];
-
-function curl_file_get_contents($durl){
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $durl);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	$r = curl_exec($ch);
-	curl_close($ch);
-	return $r;
-}
 ?>
