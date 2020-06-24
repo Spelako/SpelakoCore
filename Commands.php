@@ -208,7 +208,6 @@ switch($args[0]) {
 						foreach($p['RankedData'] as $k => $v) {
 							echo PHP_EOL.'['.$k.'] Elo: '.$v['Elo'].' | 胜: '.$v['Win'].' | 败: '.$v['Lose'];
 						}
-						echo (PHP_EOL.'命令用时: '.(microtime(true) - $start));
 					}
 					else {
 						echo('无法获取此玩家的信息.');
@@ -234,7 +233,6 @@ switch($args[0]) {
 							echo ($k + 1).'. '.$v['lastknownname'].' - '.$v['rankedelo'];
 							if($k != count($lb[$category]) -1) echo PHP_EOL;
 						}
-						echo(PHP_EOL.'命令用时: '.(microtime(true) - $start));
 					}
 					else {
 						echo('无法解析来自 SyuuNet 的数据.');
