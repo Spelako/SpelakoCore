@@ -321,7 +321,7 @@ switch($args[0]) {
 		echo
 		'General:'.PHP_EOL.
 		'	Dev: Peaksol'.PHP_EOL.
-		'	Version: 1.1.0'.$version.PHP_EOL.
+		'	Version: 1.2.0'.$version.PHP_EOL.
 		'	First Created: 2019/6/18'.PHP_EOL.
 		'Credits:'.PHP_EOL.
 		'	Hypixel Stats API by Hypixel'.PHP_EOL.
