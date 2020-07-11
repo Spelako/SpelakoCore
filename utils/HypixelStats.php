@@ -37,6 +37,24 @@ function hypixel_getguild($apikey, $playerUuid) {
 	else return false;
 }
 
+function hypixel_skyblock_profile($apikey, $profile) {
+	if (!isOutdated('cache/hypixel/skyblock/profile/'.$profile.'.json', 30)) {
+		$src = rfile('cache/hypixel/skyblock/profile/'.$profile.'.json');
+		$usingCache = true;
+	}
+	else {
+		$src = file_get_contents('https://api.hypixel.net/skyblock/profile/?key='.$apikey.'&profile='.$profile, false, stream_context_create($GLOBALS['stream_opts']));
+		$usingCache = false;
+	}
+
+	$result = json_decode($src, true);
+	if($result['success'] && $result['profile'] != null){
+		if(!$usingCache) wfile('cache/skyblock/profile/'.$playerUuid.'.json', $src);
+		return $result;
+	}
+	else return false;
+}
+
 // Skywars 等级
 function getLevelSW($formatStr) {
 	$filter = str_replace(

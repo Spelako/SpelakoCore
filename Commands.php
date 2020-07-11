@@ -84,6 +84,25 @@ switch($args[0]) {
 			if($p){
 				$cancelled = getCancelledCategories($p);
 				switch(strtolower($args[2])){
+					case 'guild':
+					case 'g':
+						if(in_array('g', $cancelled)) {
+							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 公会 信息的查询.';
+							exit();
+						}
+						$g = hypixel_getguild($apiKey, $p['player']['uuid']);
+						if($g) {
+							echo
+							getRank($p).$p['player']['displayname'].' 的 公会 信息:'.PHP_EOL.
+							'公会名称: '.$g['guild']['name'].PHP_EOL.
+							'创立时间: '.toDate($g['guild']['created']).PHP_EOL.
+							'等级: '.getLevelGuild($g['guild']['exp']).' | 标签: ['.$g['guild']['tag'].']'.PHP_EOL.
+							'成员: '.count($g['guild']['members']).' | 最高在线: '.$g['guild']['achievements']['ONLINE_PLAYERS'];
+						}
+						else {
+							echo('无法找到玩家 '.$p['player']['displayname'].' 的公会信息.');
+						}
+						break;
 					case 'blitzsg':
 					case 'bsg':
 					case 'hungergames':
@@ -144,24 +163,41 @@ switch($args[0]) {
 						'击杀: '.$p['player']['stats']['Bedwars']['kills_bedwars']. ' | 死亡: '.$p['player']['stats']['Bedwars']['deaths_bedwars'].' | K/D: '.round($p['player']['stats']['Bedwars']['kills_bedwars']/$p['player']['stats']['Bedwars']['deaths_bedwars'], 3).PHP_EOL.
 						'终杀: '.$p['player']['stats']['Bedwars']['final_kills_bedwars']. ' | 终死: '.$p['player']['stats']['Bedwars']['final_deaths_bedwars'].' | FKDR: '.round($p['player']['stats']['Bedwars']['final_kills_bedwars']/$p['player']['stats']['Bedwars']['final_deaths_bedwars'], 3);
 						break;
-					case 'guild':
-					case 'g':
-						if(in_array('g', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 公会 信息的查询.';
-							exit();
-						}
-						$g = hypixel_getguild($apiKey, $p['player']['uuid']);
-						if($g) {
-							echo
-							getRank($p).$p['player']['displayname'].' 的 公会 信息:'.PHP_EOL.
-							'公会名称: '.$g['guild']['name'].PHP_EOL.
-							'创立时间: '.toDate($g['guild']['created']).PHP_EOL.
-							'等级: '.getLevelGuild($g['guild']['exp']).' | 标签: ['.$g['guild']['tag'].']'.PHP_EOL.
-							'成员: '.count($g['guild']['members']).' | 最高在线: '.$g['guild']['achievements']['ONLINE_PLAYERS'];
+					case 'skyblock':
+					case 'sb':
+						$profiles = $p['player']['stats']['SkyBlock']['profiles'];
+						if(isset($args[3])) {
+							if(is_numeric($args[3])) {
+								$profile = array_keys($profiles)[(int)$args[3] - 1];
+							}
+							else {
+								foreach($profiles as $k => $v) {
+									if(strcasecmp($v['cute_name'], $args[3]) == 0) {
+										$profile = $v['profile_id'];
+									}
+								}
+							}
 						}
 						else {
-							echo('无法找到玩家 '.$p['player']['displayname'].' 的公会信息.');
+							$profile = array_keys($profiles)[0];
 						}
+
+						echo
+						getRank($p).$p['player']['displayname'].' 的 SkyBlock 技能信息:'.PHP_EOL.
+						'Taming: '.$p['player']['achievements']['skyblock_domesticator'].' | Farming: '.$p['player']['achievements']['skyblock_harvester'].PHP_EOL.
+						'Mining: '.$p['player']['achievements']['skyblock_excavator'].' | Combat: '.$p['player']['achievements']['skyblock_combat'].PHP_EOL.
+						'Foraging: '.$p['player']['achievements']['skyblock_gatherer'].' | Fishing: '.$p['player']['achievements']['skyblock_angler'].PHP_EOL.
+						'Enchanting: '.$p['player']['achievements']['skyblock_augmentation'].' | Alchemy: '.$p['player']['achievements']['skyblock_concoctor'].PHP_EOL.
+						(
+							((!isset($args[3])) && (count($profiles) > 1)) ?
+							(
+								'当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile]['cute_name'].PHP_EOL.
+								'在指令末尾输入存档名或序号可查询指定存档.'
+							)
+							: (
+								'当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile]['cute_name']
+							)
+						);
 						break;
 					default:
 						if(isset($args[2])) echo '未知的分类, 已跳转至默认分类.'.PHP_EOL;
@@ -185,12 +221,13 @@ switch($args[0]) {
 			echo
 			'正确用法: /hypixel <玩家> [分类]'.PHP_EOL.
 			'"分类" 可以是下列之一:'.PHP_EOL.
+			'- guild, g'.PHP_EOL.
 			'- bedwars, bw'.PHP_EOL.
 			'- skywars, sw'.PHP_EOL.
 			'- uhc'.PHP_EOL.
 			'- megawalls, mw'.PHP_EOL.
 			'- blitzsg, bsg, hungergames'.PHP_EOL.
-			'- guild, g';
+			'- skyblock, sb';
 		}
 		break;
 	case '/syuu':
@@ -387,7 +424,7 @@ switch($args[0]) {
 		$sCmd = similarCommand($args[0], array('help', 'mojang', 'server', 'hypixel', 'syuu', 'virus', 'spelako', 'skyblock', 'lv', 'stats'));
 		if($sCmd) {
 			echo
-			'你可能想输入此命令: /'.$sCmd.PHP_EOL.
+			'你可能想输入此指令: /'.$sCmd.PHP_EOL.
 			'但是你将其输入为了 "'.$args[0].'"';
 		}
 }
