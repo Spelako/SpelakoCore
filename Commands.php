@@ -1,7 +1,7 @@
 <?php
-function onMessage($fromAccount = 'unknown', $fromGroup = 'unknown', $msg = '/help') {
+function onMessage($fromAccount, $msg) {
 
-if(isBlacklisted($fromGroup, true) || isBlacklisted($fromAccount)) exit();
+if(isBlacklisted($fromAccount)) exit();
 $args_nofilter = explode(' ', $msg);
 $args = array_values(array_filter($args_nofilter));
 
@@ -18,7 +18,8 @@ switch($args[0]) {
 		'/mojang <玩家/UUID> - 获取指定玩家的 Mojang 账号信息'.PHP_EOL.
 		'/server <地址> [端口] - 获取指定地址的 Minecraft 服务器信息'.PHP_EOL.
 		'/hypixel <玩家> [分类] - 获取指定玩家的 Hypixel 信息'.PHP_EOL.
-		'/syuu <user/lb> ... - 获取 SyuuNet 的玩家信息或排行榜';
+		'/syuu ... - 获取 SyuuNet 的玩家信息或排行榜'.PHP_EOL.
+		'欲查看指令详细用法, 请前往 spelako.github.io/#help';
 		break;
 	case '/mojang':
 		if(!getAvailability($fromAccount)) exit('你查询的频率过高, 喝杯茶休息一下吧!');
@@ -40,7 +41,7 @@ switch($args[0]) {
 				} else echo $p['names'][0]['name'];
 			}
 			else {
-				echo('无效的玩家名.');
+				echo('无法获取此玩家的信息.');
 			}
 		}
 		else {
@@ -79,17 +80,12 @@ switch($args[0]) {
 			userExecute($fromAccount);
 			require_once('utils/HypixelStats.php');
 			
-			$apiKey = '[在此输入 Hypixel API Key]';
+			$apiKey = 'f117fe18-2f35-4150-9d89-d2a23f74cf9b';
 			$p = hypixel_getstats($apiKey, $args[1]);
 			if($p){
-				$cancelled = getCancelledCategories($p);
 				switch(strtolower($args[2])){
 					case 'guild':
 					case 'g':
-						if(in_array('g', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 公会 信息的查询.';
-							exit();
-						}
 						$g = hypixel_getguild($apiKey, $p['player']['uuid']);
 						if($g) {
 							echo
@@ -106,20 +102,12 @@ switch($args[0]) {
 					case 'blitzsg':
 					case 'bsg':
 					case 'hungergames':
-						if(in_array('bsg', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Blitz SG 信息的查询.';
-							exit();
-						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Biltz SG 信息:'.PHP_EOL.
 						'游玩次数: '.$p['player']['stats']['HungerGames']['games_played'].' | 硬币: '.$p['player']['stats']['HungerGames']['coins'].' | 开箱数: '.$p['player']['stats']['HungerGames']['chests_opened'].PHP_EOL.
 						'击杀: '.$p['player']['stats']['HungerGames']['kills'].' | 死亡: '.$p['player']['stats']['HungerGames']['deaths'].' | K/D: '.round($p['player']['stats']['HungerGames']['kills']/$p['player']['stats']['HungerGames']['deaths'], 3);
 						break;
 					case 'uhc':
-						if(in_array('uhc', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 UHC 信息的查询.';
-							exit();
-						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 UHC 信息:'.PHP_EOL.
 						'分数: '.$p['player']['stats']['UHC']['score'].' | 硬币: '.$p['player']['stats']['UHC']['coins'].' | 胜场: '.$p['player']['stats']['UHC']['wins'].PHP_EOL.
@@ -127,10 +115,6 @@ switch($args[0]) {
 						break;
 					case 'megawalls':
 					case 'mw':
-						if(in_array('mw', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Mega Walls 信息的查询.';
-							exit();
-						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Mega Walls 信息:'.PHP_EOL.
 						'凋零伤害: '.$p['player']['stats']['Walls3']['wither_damage'].' | 职业: '.$p['player']['stats']['Walls3']['chosen_class'].' | 硬币: '.$p['player']['stats']['Walls3']['coins'].PHP_EOL.
@@ -140,22 +124,14 @@ switch($args[0]) {
 						break;
 					case 'skywars':
 					case 'sw':
-						if(in_array('sw', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Skywars 信息的查询.';
-							exit();
-						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Skywars 信息:'.PHP_EOL.
-						'等级: '.getLevelSW($p['player']['stats']['SkyWars']['levelFormatted']).' | 硬币: '.$p['player']['stats']['SkyWars']['coins'].' | 助攻: '.$p['player']['stats']['SkyWars']['assists'].PHP_EOL.
+						'等级: '.clearColorFormat($p['player']['stats']['SkyWars']['levelFormatted']).' | 硬币: '.$p['player']['stats']['SkyWars']['coins'].' | 助攻: '.$p['player']['stats']['SkyWars']['assists'].PHP_EOL.
 						'击杀: '.$p['player']['stats']['SkyWars']['kills'].' | 死亡: '.$p['player']['stats']['SkyWars']['deaths'].' | K/D: '.round($p['player']['stats']['SkyWars']['kills']/$p['player']['stats']['SkyWars']['deaths'], 3).PHP_EOL.
 						'胜场: '.$p['player']['stats']['SkyWars']['wins'].' | 败场: '.$p['player']['stats']['SkyWars']['losses'].' | W/L: '.round($p['player']['stats']['SkyWars']['wins']/$p['player']['stats']['SkyWars']['losses'], 3);
 						break;
 					case 'bedwars':
 					case 'bw':
-						if(in_array('bw', $cancelled)) {
-							echo '玩家 '.$p['player']['displayname'].' 禁止了 Spelako 对其 Bedwars 信息的查询.';
-							exit();
-						}
 						echo
 						getRank($p).$p['player']['displayname'].' 的 Bedwars 信息:'.PHP_EOL.
 						'等级: '.$p['player']['achievements']['bedwars_level'].' | 硬币: '.$p['player']['stats']['Bedwars']['coins'].' | 拆床: '.$p['player']['stats']['Bedwars']['beds_broken_bedwars'].PHP_EOL.
@@ -166,38 +142,101 @@ switch($args[0]) {
 					case 'skyblock':
 					case 'sb':
 						$profiles = $p['player']['stats']['SkyBlock']['profiles'];
-						if(isset($args[3])) {
-							if(is_numeric($args[3])) {
-								$profile = array_keys($profiles)[(int)$args[3] - 1];
+						echo
+						'欲查询玩家 Skyblock 信息, 请使用此指令:'.PHP_EOL.
+						'/hypixel <玩家> <分类> [存档名/序号]'.PHP_EOL.
+						'"分类" 可以是下列之一: '.PHP_EOL.
+						'- skyblockSkills, sbs'.PHP_EOL.
+						'- skyblockAuction, sba'.PHP_EOL.
+						'此玩家有 '.count($profiles).'个存档 (序号 - 存档名):';
+						foreach(array_keys($profiles) as $k => $v) {
+							echo PHP_EOL.($k + 1).' - '.$profiles[$v]['cute_name'];
+						}
+						break;
+					case 'skyblockskills':
+					case 'sbs':
+						$profiles = $p['player']['stats']['SkyBlock']['profiles'];
+						$profile_id = queryProfileSB($profiles, isset($args[3])? $args[3] : 1);
+						if($profile_id) {
+							$profile = hypixel_skyblock_profile($apiKey, $profile_id);
+							$member = $profile['profile']['members'][$p['player']['uuid']];
+
+							$taming = $member['experience_skill_taming'];
+							$farming = $member['experience_skill_farming'];
+							$mining = $member['experience_skill_mining'];
+							$combat = $member['experience_skill_combat'];
+							$foraging = $member['experience_skill_foraging'];
+							$fishing = $member['experience_skill_fishing'];
+							$enchanting = $member['experience_skill_enchanting'];
+							$alchemy = $member['experience_skill_alchemy'];
+							$carpentry = $member['experience_skill_carpentry'];
+							$runecrafting = $member['experience_skill_runecrafting'];
+
+							// 这里判断玩家是否允许了 API 访问, 是则使用 skyblock profile api 里的数据, 否则使用 player api 里的数据.
+							// 这里的判断类似于 https://github.com/LeaPhant/skyblock-stats/blob/5591a32/src/lib.js 的第 1121 行至 1215 行.
+							if(isset($taming)
+							|| isset($farming)
+							|| isset($mining)
+							|| isset($combat)
+							|| isset($foraging)
+							|| isset($fishing)
+							|| isset($enchanting)
+							|| isset($alchemy)
+							|| isset($carpentry)
+							|| isset($runecrafting)) {
+								echo
+								getRank($p).$p['player']['displayname'].' 的 SkyBlock 技能信息:'.PHP_EOL.
+								'Taming: '.getLevelSB($taming).' | Farming: '.getLevelSB($farming).PHP_EOL.
+								'Mining: '.getLevelSB($mining).' | Combat: '.getLevelSB($combat).PHP_EOL.
+								'Foraging: '.getLevelSB($foraging).' | Fishing: '.getLevelSB($fishing).PHP_EOL.
+								'Enchanting: '.getLevelSB($enchanting).' | Alchemy: '.getLevelSB($alchemy).PHP_EOL.
+								'Carpentry: '.getLevelSB($carpentry).' | Runecrafting: '.getLevelSB($runecrafting, true).PHP_EOL.
+								'当前存档: '.$profiles[$profile_id]['cute_name'];
 							}
 							else {
-								foreach($profiles as $k => $v) {
-									if(strcasecmp($v['cute_name'], $args[3]) == 0) {
-										$profile = $v['profile_id'];
-									}
-								}
+								echo
+								getRank($p).$p['player']['displayname'].' 的 SkyBlock 技能信息:'.PHP_EOL.
+								'Taming: '.$p['player']['achievements']['skyblock_domesticator'].' | Farming: '.$p['player']['achievements']['skyblock_harvester'].PHP_EOL.
+								'Mining: '.$p['player']['achievements']['skyblock_excavator'].' | Combat: '.$p['player']['achievements']['skyblock_combat'].PHP_EOL.
+								'Foraging: '.$p['player']['achievements']['skyblock_gatherer'].' | Fishing: '.$p['player']['achievements']['skyblock_angler'].PHP_EOL.
+								'Enchanting: '.$p['player']['achievements']['skyblock_augmentation'].' | Alchemy: '.$p['player']['achievements']['skyblock_concoctor'].PHP_EOL.
+								'当前存档: '.$profiles[$profile_id]['cute_name'].PHP_EOL.
+								'注意: 无法访问玩家技能 API, 信息可能不准确.';
 							}
 						}
 						else {
-							$profile = array_keys($profiles)[0];
+							echo('无效的存档名/序号.');
 						}
+						break;
+					case 'skyblockauction':
+					case 'sba':
+						$profiles = $p['player']['stats']['SkyBlock']['profiles'];
+						$profile_id = queryProfileSB($profiles, isset($args[3])? $args[3] : 1);
+						if($profile_id) {
+							$auctions = hypixel_skyblock_auction($apiKey, $profile_id)['auctions'];
 
-						echo
-						getRank($p).$p['player']['displayname'].' 的 SkyBlock 技能信息:'.PHP_EOL.
-						'Taming: '.$p['player']['achievements']['skyblock_domesticator'].' | Farming: '.$p['player']['achievements']['skyblock_harvester'].PHP_EOL.
-						'Mining: '.$p['player']['achievements']['skyblock_excavator'].' | Combat: '.$p['player']['achievements']['skyblock_combat'].PHP_EOL.
-						'Foraging: '.$p['player']['achievements']['skyblock_gatherer'].' | Fishing: '.$p['player']['achievements']['skyblock_angler'].PHP_EOL.
-						'Enchanting: '.$p['player']['achievements']['skyblock_augmentation'].' | Alchemy: '.$p['player']['achievements']['skyblock_concoctor'].PHP_EOL.
-						(
-							((!isset($args[3])) && (count($profiles) > 1)) ?
-							(
-								'当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile]['cute_name'].PHP_EOL.
-								'在指令末尾输入存档名或序号可查询指定存档.'
-							)
-							: (
-								'当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile]['cute_name']
-							)
-						);
+							if($auctions) {
+								echo(getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL);
+								foreach($auctions as $k => $v) {
+									if(!$v['claimed']) {
+										echo
+										'--- '.$v['item_name'].' ---'.PHP_EOL.
+										($v['bin'] ? '一口价: ' : ('最高出价: '.($v['highest_bid_amount'] ? : '无').' | 起拍价: ')).$v['starting_bid'].PHP_EOL.
+										'结束时间: '.toDate($v['end']).PHP_EOL;
+									}
+								}
+								echo('当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile_id]['cute_name']);
+							}
+							else {
+								echo
+								getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL.
+								'此存档没有正在拍卖的物品.'.((count($profiles) <= 1) ?: ' 你可以尝试查询此玩家的其他存档.').PHP_EOL.
+								'当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile_id]['cute_name'];
+							}
+						}
+						else {
+							echo('无效的存档名/序号.');
+						}
 						break;
 					default:
 						if(isset($args[2])) echo '未知的分类, 已跳转至默认分类.'.PHP_EOL;
@@ -214,7 +253,7 @@ switch($args[0]) {
 				}
 			}
 			else {
-				echo('无效的玩家名.');
+				echo('无法获取此玩家的信息.');
 			}
 		}
 		else {
@@ -288,8 +327,7 @@ switch($args[0]) {
 				}
 				break;
 			default:
-				echo
-				'正确用法: /syuu <user/lb> ...';
+				echo('正确用法: /syuu user <玩家> 或 /syuu lb <分类>');
 		}
 		break;
 	case '/virus':
@@ -321,13 +359,15 @@ switch($args[0]) {
 		echo
 		'General:'.PHP_EOL.
 		'	Dev: Peaksol'.PHP_EOL.
-		'	Version: 1.2.0'.$version.PHP_EOL.
+		'	Version: 1.3.0'.$version.PHP_EOL.
 		'	First Created: 2019/6/18'.PHP_EOL.
 		'Credits:'.PHP_EOL.
 		'	Hypixel Stats API by Hypixel'.PHP_EOL.
 		'	Mojang Player Stats API by Mojang'.PHP_EOL.
 		'	Minecraft Server Status by Lukasss93'.PHP_EOL.
 		'	DXY-2019-nCoV-Crawler by BlankerL';
+		'For more details, please visit:'.PHP_EOL.
+		'	https://spelako.github.io/';
 		break;
 	// 以下为机器人管理员指令
 	case '/admin':
@@ -338,8 +378,8 @@ switch($args[0]) {
 		'/echo <文本> - 使机器人复读消息'.PHP_EOL.
 		'/botstats - 获取机器人的相关统计数据'.PHP_EOL.
 		'/clearcache - 清理所有 cache 目录下的缓存数据'.PHP_EOL.
-		'/ignore ... - 屏蔽指定用户/指定(或当前)群的指令'.PHP_EOL.
-		'/unignore ... - 解除对指定用户/指定群的指令的屏蔽';
+		'/ignore <QQ> - 屏蔽指定用户的指令'.PHP_EOL.
+		'/unignore <QQ> - 解除对指定用户的指令的屏蔽';
 		break;
 	case '/echo':
 		if(!isStaff($fromAccount)) exit();
@@ -358,7 +398,7 @@ switch($args[0]) {
 		echo
 		'目前 Spelako 缓存了 '.count(getCooldowns()).' 人的使用记录,'.PHP_EOL.
 		'缓存文件共 '.dcount('cache/').' 个, 占用存储空间 '.dsize('cache/').'.'.PHP_EOL.
-		'有 '.count(getBlacklist()).' 个用户及 '.count(getBlacklist(true)).' 个群聊被列入黑名单.';
+		'有 '.count(getBlacklist()).' 个用户被列入黑名单.';
 		break;
 	case '/clearcache':
 		if(!isStaff($fromAccount)) exit();
@@ -367,57 +407,26 @@ switch($args[0]) {
 		break;
 	case '/ignore':
 		if(!isStaff($fromAccount)) exit();
-		switch($args[1]){
-			case 'user':
-				if(isset($args[2]))
-					if(blacklistAdd($args[2], false))
-						echo ('Spelako 将不再处理用户 '.$args[2].' 的指令.');
-					else
-						echo ('该用户已经被 Spelako 屏蔽.');
-				else
-					echo ('正确用法: /ignore user <QQ号>');
-				break;
-			case 'group':
-				if(isset($args[2]))
-					if(blacklistAdd($args[2], true))
-						echo ('Spelako 将不再处理群 '.$args[2].' 的指令.');
-					else
-						echo ('该群已经被 Spelako 屏蔽.');
-				else
-					if(blacklistAdd($fromGroup, true))
-						echo ('Spelako 将不再处理当前群('.$fromGroup.')的指令.');
-					else
-						echo ('当前群已经被 Spelako 屏蔽.');
-					break;
-			default:
-				echo('正确用法: /ignore <user/group> ...');
-				break;
+		if(isset($args[1])) {
+			if(blacklistAdd($args[1]))
+				echo('Spelako 将不再处理用户 '.$args[1].' 的指令.');
+			else
+				echo('该用户已经被 Spelako 屏蔽.');
+		}
+		else {
+			echo('正确用法: /ignore <QQ号>');
 		}
 		break;
 	case '/unignore':
 		if(!isStaff($fromAccount)) exit();
-		switch($args[1]){
-			case 'user':
-				if(isset($args[2]))
-					if(blacklistRemove($args[2], false))
-						echo('Spelako 将继续处理用户 '.$args[2].' 的指令.');
-					else
-						echo('该用户没有被 Spelako 屏蔽.');
-				else
-					echo('正确用法: /unignore user <QQ号>');
-				break;
-			case 'group':
-				if(isset($args[2]))
-					if(blacklistRemove($args[2], true))
-						echo('Spelako 将继续处理群 '.$args[2].' 的指令.');
-					else
-						echo('该群没有被 Spelako 屏蔽.');
-				else
-					echo('正确用法: /unignore group <群号>');
-				break;
-			default: 
-				echo('正确用法: /unignore <user/group> ...');
-				break;
+		if(isset($args[1])) {
+			if(blacklistRemove($args[1]))
+				echo('Spelako 将继续处理用户 '.$args[1].' 的指令.');
+			else
+				echo('该用户没有被 Spelako 屏蔽.');
+		}
+		else {
+			echo('正确用法: /unignore user <QQ号>');
 		}
 		break;
 	default:

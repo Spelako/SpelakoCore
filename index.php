@@ -22,5 +22,5 @@ function onException(string $path, int $line, string $str, int $no){
 }
 
 require_once('Commands.php');
-onMessage($_GET['fromAccount'], $_GET['fromGroup'], $_GET['msg']);
+onMessage($_GET['fromAccount'], $_GET['msg']);
 ?>

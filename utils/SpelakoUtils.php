@@ -104,35 +104,35 @@ function isOutdated($path, $timeout) {
 }
 
 // 黑名单模块
-function getBlacklist($isGroup = false){
-	$contents = rfile($isGroup ? 'saves/blacklist/group.txt' : 'saves/blacklist/user.txt');
+function getBlacklist(){
+	$contents = rfile('saves/blacklist/user.txt');
 	$list = explode(PHP_EOL, $contents);
 	$list = array_filter($list);
 	return $list;
 }
-function saveBlacklist($list, $isGroup = false){
+function saveBlacklist($list){
 	$contents = implode(PHP_EOL, array_filter($list));
-	wfile($isGroup ? 'saves/blacklist/group.txt' : 'saves/blacklist/user.txt', $contents);
+	wfile('saves/blacklist/user.txt', $contents);
 }
-function isBlacklisted(string $number, bool $isGroup = false){
-	return in_array($number, getBlacklist($isGroup));
+function isBlacklisted(string $number){
+	return in_array($number, getBlacklist());
 }
-function blacklistAdd(string $number, bool $isGroup = false){
-	$list = getBlacklist($isGroup);
+function blacklistAdd(string $number){
+	$list = getBlacklist();
 	if(in_array($number, $list)){
 		return false;
 	}
 	else {
 		array_push($list, $number);
-		saveBlacklist($list, $isGroup);
+		saveBlacklist($list);
 		return true;
 	}
 }
-function blacklistRemove(string $number, bool $isGroup = false){
-	$list = getBlacklist($isGroup);
+function blacklistRemove(string $number){
+	$list = getBlacklist();
 	if(in_array($number, $list)){
 		$list = array_diff($list, [$number]);
-		saveBlacklist($list, $isGroup);
+		saveBlacklist($list);
 		return true;
 	}
 	else {
