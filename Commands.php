@@ -80,7 +80,7 @@ switch($args[0]) {
 			userExecute($fromAccount);
 			require_once('utils/HypixelStats.php');
 			
-			$apiKey = 'f117fe18-2f35-4150-9d89-d2a23f74cf9b';
+			$apiKey = '[在此输入 Hypixel API Key]';
 			$p = hypixel_getstats($apiKey, $args[1]);
 			if($p){
 				switch(strtolower($args[2])){
@@ -216,21 +216,30 @@ switch($args[0]) {
 							$auctions = hypixel_skyblock_auction($apiKey, $profile_id)['auctions'];
 
 							if($auctions) {
+								$items = array();
+								foreach($auctions as $item) if(!$item['claimed']) array_push($items, $item);
 								echo(getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL);
-								foreach($auctions as $k => $v) {
-									if(!$v['claimed']) {
+								if(count($items)) {
+									foreach($items as $k => $v) {
 										echo
-										'--- '.$v['item_name'].' ---'.PHP_EOL.
+										'===> '.$v['item_name'].' <==='.PHP_EOL.
 										($v['bin'] ? '一口价: ' : ('最高出价: '.($v['highest_bid_amount'] ? : '无').' | 起拍价: ')).$v['starting_bid'].PHP_EOL.
 										'结束时间: '.toDate($v['end']).PHP_EOL;
+										if($k >= 5) {
+											echo '...等共 '.count($items).' 件正在拍卖的物品'.PHP_EOL;
+											break;
+										}
 									}
+								}
+								else {
+									echo('此存档没有正在拍卖的物品.'.((count($profiles) > 1) ? PHP_EOL.'你可以尝试查询此玩家的其他存档.' : '').PHP_EOL);
 								}
 								echo('当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile_id]['cute_name']);
 							}
 							else {
 								echo
 								getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL.
-								'此存档没有正在拍卖的物品.'.((count($profiles) <= 1) ?: ' 你可以尝试查询此玩家的其他存档.').PHP_EOL.
+								'此存档没有正在拍卖的物品.'.((count($profiles) > 1) ? PHP_EOL.'你可以尝试查询此玩家的其他存档.' : '').PHP_EOL.
 								'当前存档: '.$p['player']['stats']['SkyBlock']['profiles'][$profile_id]['cute_name'];
 							}
 						}
@@ -359,14 +368,14 @@ switch($args[0]) {
 		echo
 		'General:'.PHP_EOL.
 		'	Dev: Peaksol'.PHP_EOL.
-		'	Version: 1.3.0'.$version.PHP_EOL.
+		'	Version: 1.3.1'.$version.PHP_EOL.
 		'	First Created: 2019/6/18'.PHP_EOL.
 		'Credits:'.PHP_EOL.
 		'	Hypixel Stats API by Hypixel'.PHP_EOL.
 		'	Mojang Player Stats API by Mojang'.PHP_EOL.
 		'	Minecraft Server Status by Lukasss93'.PHP_EOL.
-		'	DXY-2019-nCoV-Crawler by BlankerL';
-		'For more details, please visit:'.PHP_EOL.
+		'	DXY-2019-nCoV-Crawler by BlankerL'.PHP_EOL.
+		'For more information, please visit:'.PHP_EOL.
 		'	https://spelako.github.io/';
 		break;
 	// 以下为机器人管理员指令
