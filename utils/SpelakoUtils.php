@@ -24,7 +24,6 @@ function wfile($path, $contents) { // 写文件
 	if(!file_exists($path)){
 		$spl = explode('/', $path);
 		$dir = implode('/', array_slice($spl, 0, count($spl) - 1));
-		//echo '| dir: '.$dir.', full: '.$path.' |';
 		mkdir($dir, NULL, true);
 		touch($path);
 	};
@@ -188,14 +187,5 @@ function similarCommand($findBy, array $cmdList) {
 	$bestValue = max($sCmdList);
 	$bestMatch = array_search($bestValue, $sCmdList);
 	return ($bestValue > 70 && $bestValue != 100) ? $bestMatch : false;
-}
-
-// 其他
-function getBinArr($dec, $length) {
-	$bin = decbin($dec);
-	if(strlen($bin) > $length)
-		return false;
-	else
-		return str_split(str_pad($bin, $length, '0'));
 }
 ?>

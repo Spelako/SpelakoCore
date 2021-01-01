@@ -45,11 +45,20 @@ function syuu_getparsedplayerstats($player) {
 function syuu_getcategoryname($category) {
 	$categories = [
 		'Sharp2Prot2' => 's2p2',
+		'MCSG' => 'mcsg',
+		'OCTC' => 'octc',
+		'Gapple' => 'goldenapple',
 		'Archer' => 'bow',
 		'NoDelay' => 'combo',
+		'Soup' => 'soup',
 		'BuildUHC' => 'buhc',
+		'Debuff' => 'debuff',
+		'Sharp4Prot3' => 's4p3',
 		'Sumo' => 'sumo',
-		'Spleef' => 'spleef'
+		'Axe' => 'axe',
+		'Spleef' => 'spleef',
+		'FinalUHC' => 'finaluhc',
+		'Bridge' => 'bridge'
 	];
 
 	foreach($categories as $k => $v) {
