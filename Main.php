@@ -16,7 +16,6 @@ function onMessage($fromAccount, $msg) {
 				'/help - 查看此指令列表'.PHP_EOL.
 				'/spelako - 显示机器相关信息'.PHP_EOL.
 				'/mojang <玩家/UUID> - 获取指定玩家的 Mojang 账号信息'.PHP_EOL.
-				'/server <地址> [端口] - 获取指定地址的 Minecraft 服务器信息'.PHP_EOL.
 				'/hypixel <玩家> [分类] - 获取指定玩家的 Hypixel 信息'.PHP_EOL.
 				'/syuu ... - 获取 SyuuNet 的玩家信息或排行榜'.PHP_EOL.
 				'欲查看指令详细用法, 请前往 spelako.github.io/#help'
@@ -49,39 +48,13 @@ function onMessage($fromAccount, $msg) {
 			else {
 				return '正确用法: /mojang <玩家>';
 			}
-		case '/server':
-			if(!getAvailability($fromAccount)) return '你查询的频率过高, 喝杯茶休息一下吧!';
-			if(isset($args[1])){
-				userExecute($fromAccount);
-				require_once('utils/MCPing.php');
-				!isset($args[2]) && $args[2] = 25565;
-				$p = new MCPing();
-				$putils = new MCPingUtils();
-				$p = ($p->GetStatus($args[1], (int)$args[2])->Response());
-				if($p['online']) {
-					return(
-						'IP 地址: '.$p['address'].':'.$p['port'].PHP_EOL.
-						'版本: '.$p['version'].' (协议 '.$p['protocol'].')'.PHP_EOL.
-						'人数: '.$p['players'].'/'.$p['max_players'].PHP_EOL.
-						'延迟: '.$p['ping'].'ms'.PHP_EOL.
-						'MOTD:'.PHP_EOL.
-						$putils->ClearMotd($p['motd'])
-					);
-				}
-				else {
-					return '无法连接到服务器! ('.$p['error'].')';
-				}
-			}
-			else {
-				return '正确用法: /server <地址> [端口]';
-			}
 		case '/hypixel':
 			if(!getAvailability($fromAccount)) return('你查询的频率过高, 喝杯茶休息一下吧!');
 			if(isset($args[1])){
 				userExecute($fromAccount);
 				require_once('utils/HypixelStats.php');
 				
-				$apiKey = '[在此输入 Hypixel API Key]';
+				$apiKey = '71f33a11-0e23-4306-8aa8-4994f5be43de';
 				$p = hypixel_getstats($apiKey, $args[1]);
 				if($p){
 					switch(strtolower($args[2])){
@@ -221,18 +194,24 @@ function onMessage($fromAccount, $msg) {
 								if($auctions) {
 									$items = array();
 									foreach($auctions as $item) if(!$item['claimed']) array_push($items, $item);
-									$buffer =+ getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL;
+									/*
+										草, 我是憨批吧, 我当时拼接字符串的时候是怎么把 ".=" 打成 "=+" 的? 要是打成 "+=" 倒还能原谅.
+										关键是这个错误的 ".+" 自从被我写下以来, 硬是坐等了一个多月才被我发现!
+										我说查询拍卖的时候怎么一直报错呢, 还以为是 Hypixel API 改格式了. 现在修了下, 跑起来了.
+										下次写新功能一定要好好测试再发布了! 真鸡儿丢人(这是最基本的错误吧)...
+									*/
+									$buffer .= getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL;
 									if(count($items)) {
 										foreach($items as $k => $v) {
-											$buffer =+ (
-												'===> '.$v['item_name'].' <==='.PHP_EOL.
-												($v['bin'] ? '一口价: ' : ('最高出价: '.($v['highest_bid_amount'] ? : '无').' | 起拍价: ')).$v['starting_bid'].PHP_EOL.
-												'结束时间: '.toDate($v['end']).PHP_EOL
-											);
 											if($k >= 5) {
 												$buffer .= '...等共 '.count($items).' 件正在拍卖的物品'.PHP_EOL;
 												break;
 											}
+											$buffer .= (
+												'===> '.$v['item_name'].' <==='.PHP_EOL.
+												($v['bin'] ? '一口价: ' : ('最高出价: '.($v['highest_bid_amount'] ? : '无').' | 起拍价: ')).$v['starting_bid'].PHP_EOL.
+												'结束时间: '.toDate($v['end']).PHP_EOL
+											);
 										}
 										return $buffer;
 									}
@@ -350,12 +329,11 @@ function onMessage($fromAccount, $msg) {
 			return(
 				'General:'.PHP_EOL.
 				'	Dev: Peaksol'.PHP_EOL.
-				'	Version: 1.4.0'.$version.PHP_EOL.
+				'	Version: 1.5.0'.$version.PHP_EOL.
 				'	First Created: 2019/6/18'.PHP_EOL.
 				'Credits:'.PHP_EOL.
 				'	Hypixel Stats API by Hypixel'.PHP_EOL.
-				'	Mojang Player Stats API by Mojang'.PHP_EOL.
-				'	Minecraft Server Status by Lukasss93'.PHP_EOL.
+				'	Mojang Player Profile API by Mojang'.PHP_EOL.
 				'For more information, please visit:'.PHP_EOL.
 				'	https://spelako.github.io/'
 			);
@@ -417,7 +395,7 @@ function onMessage($fromAccount, $msg) {
 				return '正确用法: /unignore user <QQ号>';
 			}
 		default:
-			$sCmd = similarCommand($args[0], array('help', 'mojang', 'server', 'hypixel', 'syuu', 'virus', 'spelako', 'skyblock', 'lv', 'stats'));
+			$sCmd = similarCommand($args[0], array('help', 'mojang', 'hypixel', 'syuu', 'spelako', 'skyblock', 'lv', 'stats'));
 			if($sCmd) {
 				return(
 					'你可能想输入此指令: /'.$sCmd.PHP_EOL.

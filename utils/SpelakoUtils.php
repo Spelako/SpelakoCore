@@ -24,8 +24,8 @@ function wfile($path, $contents) { // 写文件
 	if(!file_exists($path)){
 		$spl = explode('/', $path);
 		$dir = implode('/', array_slice($spl, 0, count($spl) - 1));
-		mkdir($dir, NULL, true);
-		touch($path);
+		@mkdir($dir, NULL, true);
+		@touch($path);
 	};
 	file_put_contents($path, $contents);
 }
