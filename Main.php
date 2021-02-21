@@ -54,7 +54,7 @@ function onMessage($fromAccount, $msg) {
 				userExecute($fromAccount);
 				require_once('utils/HypixelStats.php');
 				
-				$apiKey = '71f33a11-0e23-4306-8aa8-4994f5be43de';
+				$apiKey = '[在此输入 Hypixel API Key]';
 				$p = hypixel_getstats($apiKey, $args[1]);
 				if($p){
 					switch(strtolower($args[2])){
