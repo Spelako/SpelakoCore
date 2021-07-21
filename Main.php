@@ -113,6 +113,68 @@ function onMessage($fromAccount, $msg) {
 								'击杀: '.$p['player']['stats']['Bedwars']['kills_bedwars']. ' | 死亡: '.$p['player']['stats']['Bedwars']['deaths_bedwars'].' | K/D: '.round($p['player']['stats']['Bedwars']['kills_bedwars']/$p['player']['stats']['Bedwars']['deaths_bedwars'], 3).PHP_EOL.
 								'终杀: '.$p['player']['stats']['Bedwars']['final_kills_bedwars']. ' | 终死: '.$p['player']['stats']['Bedwars']['final_deaths_bedwars'].' | FKDR: '.round($p['player']['stats']['Bedwars']['final_kills_bedwars']/$p['player']['stats']['Bedwars']['final_deaths_bedwars'], 3)
 							);
+						case 'zombies':
+						case 'zombie':
+						case 'zb':
+							switch($args[3]) {
+								case 'de':
+								case 'deadend':
+									$statsAdd .= '_deadend';
+									$map = '穷途末路地图';
+									break;
+								case 'bb':
+								case 'badblood':
+									$statsAdd .= '_badblood';
+									$map = '坏血之宫地图';
+									break;
+								case 'aa':
+								case 'alienarcadium':
+									$statsAdd .= '_alienarcadium';
+									$map = '外星游乐园地图';
+									break;
+								default:
+									$map = '全部地图';
+							}
+							switch($args[4]) {
+								case 'norm':
+								case 'normal':
+									$statsAdd .= '_normal';
+									$difficulty = '普通难度';
+									break;
+								case 'hard':
+									$statsAdd.='_hard';
+									$difficulty = '困难难度';
+									break;
+								case 'rip':
+									$statsAdd.='_rip';
+									$difficulty = '安息难度';
+									break;
+								default:
+									$difficulty = '全局';
+								
+							}
+							$returnString =(
+								getRank($p).$p['player']['displayname'].' 的 Zombies '.$map.$difficulty.'统计信息:'.PHP_EOL.
+								'生存总回合数: '.$p['player']['stats']['Arcade']['total_rounds_survived_zombies'.$statsAdd].' | 胜场: '.$p['player']['stats']['Arcade']['wins_zombies'.$statsAdd].' | 最佳回合: '.$p['player']['stats']['Arcade']['best_round_zombies'.$statsAdd].PHP_EOL.
+								'僵尸击杀数: '.$p['player']['stats']['Arcade']['zombie_kills_zombies'.$statsAdd]. ' | 复活玩家数: '.$p['player']['stats']['Arcade']['players_revived_zombies'.$statsAdd].' | 开门数: '.$p['player']['stats']['Arcade']['doors_opened_zombies'.$statsAdd].PHP_EOL.
+								'窗户修复数: '.$p['player']['stats']['Arcade']['windows_repaired_zombies'.$statsAdd]. ' | 被击倒次数: '.$p['player']['stats']['Arcade']['times_knocked_down_zombies'.$statsAdd].' | 死亡数: '.$p['player']['stats']['Arcade']['deaths_zombies'.$statsAdd]
+								);
+							if($statsAdd == '')
+								$returnString.=(
+									PHP_EOL.'欲查询玩家 Zombies 各地图的详细信息, 请使用此指令:'.PHP_EOL.
+									'/hypixel <玩家> <分类> <地图名> [难度]'.PHP_EOL.
+									'"分类"可以是下列之一: '.PHP_EOL.
+									'- zombies, zb'.PHP_EOL.
+									'"地图名" 可以是下列之一: '.PHP_EOL.
+									'- deadEnd, de'.PHP_EOL.
+									'- badBlood, bb'.PHP_EOL.
+									'- alienArcadium, aa'.PHP_EOL.
+									'"难度" 可以是下列之一: '.PHP_EOL.
+									'- normal, norm'.PHP_EOL.
+									'- hard'.PHP_EOL.
+									'- rip'
+								);
+							return($returnString);
 						case 'skyblock':
 						case 'sb':
 							$profiles = $p['player']['stats']['SkyBlock']['profiles'];
@@ -261,6 +323,7 @@ function onMessage($fromAccount, $msg) {
 					'- uhc'.PHP_EOL.
 					'- megawalls, mw'.PHP_EOL.
 					'- blitzsg, bsg, hungergames'.PHP_EOL.
+					'- zombies, zb'.PHP_EOL.
 					'- skyblock, sb'
 				);
 			}
