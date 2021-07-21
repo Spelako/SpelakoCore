@@ -155,7 +155,7 @@ function onMessage($fromAccount, $msg) {
 							}
 							$returnString =(
 								getRank($p).$p['player']['displayname'].' 的 Zombies '.$map.$difficulty.'统计信息:'.PHP_EOL.
-								'生存总回合数: '.$p['player']['stats']['Arcade']['total_rounds_survived_zombies'.$statsAdd].' | 胜场: '.$p['player']['stats']['Arcade']['wins_zombies'.$statsAdd].' | 最佳波数: '.$p['player']['stats']['Arcade']['best_round_zombies'.$statsAdd].PHP_EOL.
+								'生存总回合数: '.$p['player']['stats']['Arcade']['total_rounds_survived_zombies'.$statsAdd].' | 胜场: '.$p['player']['stats']['Arcade']['wins_zombies'.$statsAdd].' | 最佳回合: '.$p['player']['stats']['Arcade']['best_round_zombies'.$statsAdd].PHP_EOL.
 								'僵尸击杀数: '.$p['player']['stats']['Arcade']['zombie_kills_zombies'.$statsAdd]. ' | 复活玩家数: '.$p['player']['stats']['Arcade']['players_revived_zombies'.$statsAdd].' | 开门数: '.$p['player']['stats']['Arcade']['doors_opened_zombies'.$statsAdd].PHP_EOL.
 								'窗户修复数: '.$p['player']['stats']['Arcade']['windows_repaired_zombies'.$statsAdd]. ' | 被击倒次数: '.$p['player']['stats']['Arcade']['times_knocked_down_zombies'.$statsAdd].' | 死亡数: '.$p['player']['stats']['Arcade']['deaths_zombies'.$statsAdd]
 								);
