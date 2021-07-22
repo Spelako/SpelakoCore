@@ -13,13 +13,17 @@ function hypixel_getstats($apiKey, $player) {
 
 	$result = json_decode($src, true);
 	if($result['success'] && $result['player'] != null) {
-		if(!$usingCache) wfile('cache/hypixel/player/'.$player.'.json', $src);
+		if(!$usingCache) {
+			unlink('cache/hypixel/player/'.$player.'.json');
+			wfile('cache/hypixel/player/'.$player.'.json', $src);
+		}
 		return $result;
 	}
 	else return false;
 }
 
 function hypixel_getguild($apikey, $playerUuid) {
+	echo 'hello?';
 	if (!isOutdated('cache/hypixel/guild/'.$playerUuid.'.json', 120)) {
 		$src = rfile('cache/hypixel/guild/'.$playerUuid.'.json');
 		$usingCache = true;
@@ -31,7 +35,10 @@ function hypixel_getguild($apikey, $playerUuid) {
 
 	$result = json_decode($src, true);
 	if($result['success'] && $result['guild'] != null){
-		if(!$usingCache) wfile('cache/hypixel/guild/'.$playerUuid.'.json', $src);
+		if(!$usingCache) {
+			unlink('cache/hypixel/guild/'.$playerUuid.'.json');
+			wfile('cache/hypixel/guild/'.$playerUuid.'.json', $src);
+		}
 		return $result;
 	}
 	else return false;
@@ -49,7 +56,10 @@ function hypixel_skyblock_auction($apiKey, $profile) {
 
 	$result = json_decode($src, true);
 	if($result['success'] && $result['auctions'] != null){
-		if(!$usingCache) wfile('cache/hypixel/skyblock/auction/'.$profile.'.json', $src);
+		if(!$usingCache) {
+			unlink('cache/hypixel/skyblock/auction/'.$profile.'.json');
+			wfile('cache/hypixel/skyblock/auction/'.$profile.'.json', $src);
+		}
 		return $result;
 	}
 	else return false;
@@ -67,7 +77,10 @@ function hypixel_skyblock_profile($apikey, $profile) {
 
 	$result = json_decode($src, true);
 	if($result['success'] && $result['profile'] != null){
-		if(!$usingCache) wfile('cache/hypixel/skyblock/profile/'.$profile.'.json', $src);
+		if(!$usingCache) {
+			unlink('cache/hypixel/skyblock/profile/'.$profile.'.json');
+			wfile('cache/hypixel/skyblock/profile/'.$profile.'.json', $src);
+		}
 		return $result;
 	}
 	else return false;
