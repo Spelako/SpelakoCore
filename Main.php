@@ -119,17 +119,17 @@ function onMessage($fromAccount, $msg) {
 							switch($args[3]) {
 								case 'de':
 								case 'deadend':
-									$statsAdd .= '_deadend';
+									$keyAdd .= '_deadend';
 									$map = '穷途末路地图';
 									break;
 								case 'bb':
 								case 'badblood':
-									$statsAdd .= '_badblood';
+									$keyAdd = '_badblood';
 									$map = '坏血之宫地图';
 									break;
 								case 'aa':
 								case 'alienarcadium':
-									$statsAdd .= '_alienarcadium';
+									$keyAdd = '_alienarcadium';
 									$map = '外星游乐园地图';
 									break;
 								default:
@@ -138,15 +138,15 @@ function onMessage($fromAccount, $msg) {
 							switch($args[4]) {
 								case 'norm':
 								case 'normal':
-									$statsAdd .= '_normal';
+									$keyAdd .= '_normal';
 									$difficulty = '普通难度';
 									break;
 								case 'hard':
-									$statsAdd.='_hard';
+									$keyAdd.='_hard';
 									$difficulty = '困难难度';
 									break;
 								case 'rip':
-									$statsAdd.='_rip';
+									$keyAdd.='_rip';
 									$difficulty = '安息难度';
 									break;
 								default:
@@ -155,21 +155,19 @@ function onMessage($fromAccount, $msg) {
 							}
 							$returnString =(
 								getRank($p).$p['player']['displayname'].' 的 Zombies '.$map.$difficulty.'统计信息:'.PHP_EOL.
-								'生存总回合数: '.$p['player']['stats']['Arcade']['total_rounds_survived_zombies'.$statsAdd].' | 胜场: '.$p['player']['stats']['Arcade']['wins_zombies'.$statsAdd].' | 最佳回合: '.$p['player']['stats']['Arcade']['best_round_zombies'.$statsAdd].PHP_EOL.
-								'僵尸击杀数: '.$p['player']['stats']['Arcade']['zombie_kills_zombies'.$statsAdd]. ' | 复活玩家数: '.$p['player']['stats']['Arcade']['players_revived_zombies'.$statsAdd].' | 开门数: '.$p['player']['stats']['Arcade']['doors_opened_zombies'.$statsAdd].PHP_EOL.
-								'窗户修复数: '.$p['player']['stats']['Arcade']['windows_repaired_zombies'.$statsAdd]. ' | 被击倒次数: '.$p['player']['stats']['Arcade']['times_knocked_down_zombies'.$statsAdd].' | 死亡数: '.$p['player']['stats']['Arcade']['deaths_zombies'.$statsAdd]
+								'生存总回合数: '.$p['player']['stats']['Arcade']['total_rounds_survived_zombies'.$keyAdd].' | 胜场: '.$p['player']['stats']['Arcade']['wins_zombies'.$keyAdd].' | 最佳回合: '.$p['player']['stats']['Arcade']['best_round_zombies'.$keyAdd].PHP_EOL.
+								'僵尸击杀数: '.$p['player']['stats']['Arcade']['zombie_kills_zombies'.$keyAdd]. ' | 复活玩家数: '.$p['player']['stats']['Arcade']['players_revived_zombies'.$keyAdd].' | 开门数: '.$p['player']['stats']['Arcade']['doors_opened_zombies'.$keyAdd].PHP_EOL.
+								'窗户修复数: '.$p['player']['stats']['Arcade']['windows_repaired_zombies'.$keyAdd]. ' | 被击倒次数: '.$p['player']['stats']['Arcade']['times_knocked_down_zombies'.$keyAdd].' | 死亡数: '.$p['player']['stats']['Arcade']['deaths_zombies'.$keyAdd]
 								);
-							if($statsAdd == '')
-								$returnString.=(
+							if($keyAdd == '')
+								$returnString .= (
 									PHP_EOL.'欲查询玩家 Zombies 各地图的详细信息, 请使用此指令:'.PHP_EOL.
-									'/hypixel <玩家> <分类> <地图名> [难度]'.PHP_EOL.
-									'"分类"可以是下列之一: '.PHP_EOL.
-									'- zombies, zb'.PHP_EOL.
-									'"地图名" 可以是下列之一: '.PHP_EOL.
+									'/hypixel <玩家> zb <地图名> [难度]'.PHP_EOL.
+									'"地图名" 可以是下列之一:'.PHP_EOL.
 									'- deadEnd, de'.PHP_EOL.
 									'- badBlood, bb'.PHP_EOL.
 									'- alienArcadium, aa'.PHP_EOL.
-									'"难度" 可以是下列之一: '.PHP_EOL.
+									'"难度" 可以是下列之一:'.PHP_EOL.
 									'- normal, norm'.PHP_EOL.
 									'- hard'.PHP_EOL.
 									'- rip'
@@ -181,7 +179,7 @@ function onMessage($fromAccount, $msg) {
 							$buffer .= (
 								'欲查询玩家 Skyblock 信息, 请使用此指令:'.PHP_EOL.
 								'/hypixel <玩家> <分类> [存档名/序号]'.PHP_EOL.
-								'"分类" 可以是下列之一: '.PHP_EOL.
+								'"分类" 可以是下列之一:'.PHP_EOL.
 								'- skyblockSkills, sbs'.PHP_EOL.
 								'- skyblockAuction, sba'.PHP_EOL.
 								'此玩家有 '.count($profiles).'个存档 (序号 - 存档名):'
@@ -256,12 +254,6 @@ function onMessage($fromAccount, $msg) {
 								if($auctions) {
 									$items = array();
 									foreach($auctions as $item) if(!$item['claimed']) array_push($items, $item);
-									/*
-										草, 我是憨批吧, 我当时拼接字符串的时候是怎么把 ".=" 打成 "=+" 的? 要是打成 "+=" 倒还能原谅.
-										关键是这个错误的 ".+" 自从被我写下以来, 硬是坐等了一个多月才被我发现!
-										我说查询拍卖的时候怎么一直报错呢, 还以为是 Hypixel API 改格式了. 现在修了下, 跑起来了.
-										下次写新功能一定要好好测试再发布了! 真鸡儿丢人(这是最基本的错误吧)...
-									*/
 									$buffer .= getRank($p).$p['player']['displayname'].' 的 SkyBlock 物品拍卖信息:'.PHP_EOL;
 									if(count($items)) {
 										foreach($items as $k => $v) {
@@ -392,11 +384,8 @@ function onMessage($fromAccount, $msg) {
 			return(
 				'General:'.PHP_EOL.
 				'	Dev: Peaksol'.PHP_EOL.
-				'	Version: 1.5.0'.$version.PHP_EOL.
+				'	Version: 1.6.0'.$version.PHP_EOL.
 				'	First Created: 2019/6/18'.PHP_EOL.
-				'Credits:'.PHP_EOL.
-				'	Hypixel Stats API by Hypixel'.PHP_EOL.
-				'	Mojang Player Profile API by Mojang'.PHP_EOL.
 				'For more information, please visit:'.PHP_EOL.
 				'	https://spelako.github.io/'
 			);
@@ -458,7 +447,7 @@ function onMessage($fromAccount, $msg) {
 				return '正确用法: /unignore user <QQ号>';
 			}
 		default:
-			$sCmd = similarCommand($args[0], array('help', 'mojang', 'hypixel', 'syuu', 'spelako', 'skyblock', 'lv', 'stats'));
+			$sCmd = similarCommand($args[0], array('help', 'mojang', 'hypixel', 'syuu', 'spelako'));
 			if($sCmd) {
 				return(
 					'你可能想输入此指令: /'.$sCmd.PHP_EOL.
