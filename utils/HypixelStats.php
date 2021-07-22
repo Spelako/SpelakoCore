@@ -23,7 +23,6 @@ function hypixel_getstats($apiKey, $player) {
 }
 
 function hypixel_getguild($apikey, $playerUuid) {
-	echo 'hello?';
 	if (!isOutdated('cache/hypixel/guild/'.$playerUuid.'.json', 120)) {
 		$src = rfile('cache/hypixel/guild/'.$playerUuid.'.json');
 		$usingCache = true;
