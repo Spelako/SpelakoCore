@@ -1,191 +1,56 @@
 <?php
-global $stream_opts;
-$GLOBALS['stream_opts'] = [
-	'ssl' => [
-		'verify_peer' => false,
-		'verify_peer_name' => false
-	],
-	'http' => [
-		'timeout' => 20
-	]
-];
-date_default_timezone_set('PRC');
+/*
+	The class SpelakoUtils provides the most common methods
+	that would of great use for creating commands for Spelako.
+*/
+class SpelakoUtils { // todo: use active parameter for cache folder
+	const CACHE_DIRECTORY = 'cache';
 
-// 文件操作模块
-function rfile($path) { // 读文件
-	if(file_exists($path))
-		$f = file_get_contents($path);
-	else
-		$f = NULL;
-	return $f;
-}
-
-function wfile($path, $contents) { // 写文件
-	if(!file_exists($path)){
-		$spl = explode('/', $path);
-		$dir = implode('/', array_slice($spl, 0, count($spl) - 1));
-		@mkdir($dir, NULL, true);
-		@touch($path);
-	};
-	file_put_contents($path, $contents);
-}
-
-function format_size($byte) { // 格式化大小
-	$a = array('字节', 'KB', 'MB', 'GB', 'TB', 'PB');
-	$pos = 0;
-	while ($byte >= 1024) {
-		$byte /= 1024;
-		$pos ++;
-	}
-	return round($byte, 2).' '.$a[$pos];
-}
-
-function fsize($path) { // 取格式化的文件大小
-	if(file_exists($path)) {
-		$size = filesize($path);
-		return format_size($size);
-	}
-	else return '文件不存在';
-}
-
-function dsize($path, $noformat = false) { // 取目录大小
-	if(is_dir($path)) {
-		$size = 0;
-		$handle = opendir($path);
-		while (($item = readdir($handle)) !== false) {
-			if ($item == '.' || $item == '..') continue;
-			$_path = $path . '/' . $item;
-			if (is_file($_path)) $size += filesize($_path);
-			if (is_dir($_path)) $size += dsize($_path, true);
+	// Sends a GET request to a specific URL and return with the request result
+	// Cache system is supported: default expiration is 0 second
+	public static function getURL($url, array $query = [], $cacheExpiration = 0, $cachePath = '.') {
+		$fullURL = $url.'?'.http_build_query($query);
+		$cacheFile = $cachePath.'/'.hash('md5', $fullURL);
+		if(file_exists($cacheFile) && (time() - filemtime($cacheFile)) <= $cacheExpiration) {
+			return FileSystem::fileRead($cacheFile);
 		}
-		closedir($handle);
-		return $noformat? $size : format_size($size);
-	}
-	else return '目录不存在';
-}
 
-function dcount($path) { // 取目录文件数 
-		$num=0;
-		$arr = glob($path);
-		foreach ($arr as $v) {
-			if(is_file($v)) {
-				$num++;
-			}
-			else {
-				$num += dcount($v."/*");
-			}
+		$result = file_get_contents($fullURL);
+		if(str_contains($http_response_header[0], '200')) {
+			if(!is_dir($cachePath)) mkdir($cachePath);
+			FileSystem::fileRemove($cacheFile);
+			FileSystem::fileWrite($cacheFile, $result);
+			return $result;
 		}
-		return $num;
-}
 
-function deldir($path){ // 清空目录
-	if(is_dir($path)) {
-		$p = scandir($path);
-		foreach($p as $val) {
-			if($val != '.' && $val != '..') {
-				if(is_dir($path.$val)) {
-					deldir($path.$val.'/');
-					@rmdir($path.$val.'/');
-				}
-				else{
-					unlink($path.$val);
-				}
-			}
-		}
-	}
-}
-
-function isOutdated($path, $timeout) {
-	if(file_exists($path)) {
-		return ((time() - filemtime($path)) > $timeout);
-	}
-	else return true;
-}
-
-// 黑名单模块
-function getBlacklist(){
-	$contents = rfile('saves/blacklist/user.txt');
-	$list = explode(PHP_EOL, $contents);
-	$list = array_filter($list);
-	return $list;
-}
-function saveBlacklist($list){
-	$contents = implode(PHP_EOL, array_filter($list));
-	wfile('saves/blacklist/user.txt', $contents);
-}
-function isBlacklisted(string $number){
-	return in_array($number, getBlacklist());
-}
-function blacklistAdd(string $number){
-	$list = getBlacklist();
-	if(in_array($number, $list)){
 		return false;
 	}
-	else {
-		array_push($list, $number);
-		saveBlacklist($list);
-		return true;
+
+	// Joins the first array with line breaks and get the placeholders replaced with the values in the second array
+	public static function buildString(array $lines, array $replacements = []) {
+		return vsprintf(implode(PHP_EOL, array_filter($lines)), $replacements);
 	}
-}
-function blacklistRemove(string $number){
-	$list = getBlacklist();
-	if(in_array($number, $list)){
-		$list = array_diff($list, [$number]);
-		saveBlacklist($list);
-		return true;
+
+	// Converts timestamp to a human-readable format, regarding the default timezone set in the config
+	public static function convertTime($timestamp, $second = false, $format = 'Y-m-d H:i', $timezone_offset = 0) {
+		if(!$timestamp) return '?';
+		return date($format, $timestamp / ($second ? 1 : 1000) + $timezone_offset);
 	}
-	else {
-		return false;
+
+	// Convert the file size to a human-readable format
+	public static function sizeFormat($byte) {
+		$a = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+		$pos = 0;
+		while ($byte >= 1024) {
+			$byte /= 1024;
+			$pos ++;
+		}
+		return round($byte, 2).' '.$a[$pos];
 	}
-}
 
-// 管理员模块
-function getStaffs(){
-	$contents = rfile('saves/staff.txt');
-	$list = explode(PHP_EOL, $contents);
-	$list = array_filter($list);
-	return $list;
-}
-function isStaff($account){
-	return in_array($account, getStaffs());
-}
-
-
-// 冷却模块
-function getCooldowns(){
-	$contents = rfile('cache/cooldown.json');
-	$arr = json_decode($contents, true);
-	return $arr;
-}
-function saveCooldowns($list){
-	wfile('cache/cooldown.json', json_encode($list));
-}
-function userExecute(string $user){
-	$cd = getCooldowns();
-	$cd[$user] = time();
-	saveCooldowns($cd);
-}
-function getAvailability(string $user){
-	$cd = getCooldowns();
-	return (time() - $cd[$user] > 6);
-}
-
-function toDate($unix, $second = false) {
-	if($unix == null)
-		return '未知';
-	else
-		return date('Y-m-d H:i', $unix / ($second ? 1 : 1000)).' CST';
-}
-
-// 纠错模块
-function similarCommand($findBy, array $cmdList) {
-	$findBy = substr($findBy, 1);
-	foreach ($cmdList as $v) {
-		similar_text($findBy, $v, $percent);
-		$sCmdList[$v] = $percent;
+	public static function div($a, $b, $round = 3) {
+		if($b == 0) return 0;
+		return round($a / $b, $round);
 	}
-	$bestValue = max($sCmdList);
-	$bestMatch = array_search($bestValue, $sCmdList);
-	return ($bestValue > 70 && $bestValue != 100) ? $bestMatch : false;
 }
 ?>
