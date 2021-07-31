@@ -3,7 +3,7 @@
 	The class SpelakoUtils provides the most common methods
 	that would of great use for creating commands for Spelako.
 */
-class SpelakoUtils { // todo: use active parameter for cache folder
+class SpelakoUtils {
 	const CACHE_DIRECTORY = 'cache';
 
 	// Sends a GET request to a specific URL and return with the request result

@@ -8,7 +8,6 @@ class Spelako {
 		'staffs' => ['123456789', '987654321'], // 管理员列表, 使用逗号分隔
 		'cooldown' => 5, // 命令冷却, 适用于需要网络请求的命令, 单位为秒
 		'timezone_offset' => 28800, // 当前时区相对于 UTC 的偏移时间, 单位为秒
-		'cache_directory' => 'cache', // 用于存储用户缓存文件的目录名
 	];
 
 	const INFO = [
