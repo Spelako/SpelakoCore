@@ -8,7 +8,7 @@ class SpelakoUtils { // todo: use active parameter for cache folder
 
 	// Sends a GET request to a specific URL and return with the request result
 	// Cache system is supported: default expiration is 0 second
-	public static function getURL($url, array $query = [], $cacheExpiration = 0, $cachePath = '.') {
+	public static function getURL($url, array $query = [], $cacheExpiration = 0, $cachePath = self::CACHE_DIRECTORY) {
 		$fullURL = $url.'?'.http_build_query($query);
 		$cacheFile = $cachePath.'/'.hash('md5', $fullURL);
 		if(file_exists($cacheFile) && (time() - filemtime($cacheFile)) <= $cacheExpiration) {

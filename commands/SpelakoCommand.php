@@ -22,7 +22,7 @@ class SpelakoCommand {
 					'The quick brown fox jumps over the lazy dog.'
 				]);
 			case $isStaff && ($args[1] == 'stats'):
-				$cacheFiles = FileSystem::directoryGetContents(Spelako::CONFIG['cache_directory']);
+				$cacheFiles = FileSystem::directoryGetContents(SpelakoUtils::CACHE_DIRECTORY);
 				$totalSize = 0;
 				foreach($cacheFiles as $file) $totalSize += FileSystem::fileGetSize($file);
 				return SpelakoUtils::buildString([
@@ -38,7 +38,7 @@ class SpelakoCommand {
 					SpelakoUtils::sizeFormat($totalSize)
 				]);
 			case $isStaff && ($args[1] == 'clean'):
-				$cacheFiles = FileSystem::directoryGetContents(Spelako::CONFIG['cache_directory']);
+				$cacheFiles = FileSystem::directoryGetContents(SpelakoUtils::CACHE_DIRECTORY);
 				$totalSize = 0;
 				foreach($cacheFiles as $file) {
 					$totalSize += FileSystem::fileGetSize($file);

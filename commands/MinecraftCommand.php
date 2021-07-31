@@ -39,7 +39,7 @@ class MinecraftCommand{
 	}
 
 	private static function fetchUuidById($id) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/users/profiles/minecraft/'.$id, cacheExpiration: 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/users/profiles/minecraft/'.$id, cacheExpiration: 300);
 		if($src && ($result = json_decode($src, true)['id'])) {
 			return $result;
 		}
@@ -47,7 +47,7 @@ class MinecraftCommand{
 	}
 
 	private static function fetchProfileByUuid($uuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/user/profiles/'.$uuid.'/names', cacheExpiration: 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/user/profiles/'.$uuid.'/names', cacheExpiration: 300);
 		if($src && ($result = json_decode($src, true))) {
 			$result = array_reverse($result, true);
 			return $result;

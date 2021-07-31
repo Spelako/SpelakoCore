@@ -81,7 +81,7 @@ class SyuuCommand {
 	}
 
 	private static function fetchPracticeLeaderboards() {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/public/leader-boards/practice', cacheExpiration: 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/public/leader-boards/practice', cacheExpiration: 300);
 		if($src && ($result = json_decode($src, true)['response'])) {
 			return $result;
 		}
@@ -90,7 +90,7 @@ class SyuuCommand {
 	
 	private static function fetchPlayerStats($player) {
 		if(strlen($player) > 16) return false;
-		$src = SpelakoUtils::getURL(self::WEB_BASE_URL.'/user/'.$player, cacheExpiration: 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::WEB_BASE_URL.'/user/'.$player, cacheExpiration: 300);
 		if(!$src) return 'ERROR_ERQUEST_FAILED';
 		$regex = '#<td class="text-left">(.+)</td>\n<td class="text-left">(.+)<a /></td>\n<td class="text-left">(.+)<a /></td>\n<td class="text-left">(.+)<a /></td>#';
 		preg_match_all($regex, $src, $matches);

@@ -330,21 +330,21 @@ class HypixelCommand {
 	}
 
 	private static function fetchGeneralStats($player) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => self::API_KEY, 'name' => $player], 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => self::API_KEY, 'name' => $player], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
 		if(($result = json_decode($src, true)['player']) == null) return 'ERROR_PLAYER_NOT_FOUND';
 		return $result;
 	}
 
 	private static function fetchGuild($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => self::API_KEY, 'player' => $playerUuid], 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => self::API_KEY, 'player' => $playerUuid], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
 		if(($result = json_decode($src, true)['guild']) == null) return 'ERROR_GUILD_NOT_FOUND';
 		return $result;
 	}
 
 	private static function fetchSkyblockAuction($profile) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 300);
 		if($src && (($result = json_decode($src, true)['auctions']) != null)) {
 			return $result;
 		}
@@ -352,7 +352,7 @@ class HypixelCommand {
 	}
 
 	private static function fetchSkyblockProfile($profile) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/profile', ['key' => self::API_KEY, 'profile' => $profile], 300, cachePath: Spelako::CONFIG['cache_directory']);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/profile', ['key' => self::API_KEY, 'profile' => $profile], 300);
 		if($src && (($result = json_decode($src, true)['profile'])) != null) {
 			return $result;
 		}
