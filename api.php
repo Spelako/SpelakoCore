@@ -1,12 +1,15 @@
 <?php
+header('Content-Type: text/plain; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+set_time_limit(15);
+
 set_error_handler(function ($errno, $errstr, $errfile, $errline) {
 	if($errno != (2 || 8)) onException($errfile, $errline, $errstr, $errno);
 }, E_ALL | E_STRICT);
 set_exception_handler(function ($e) {
 	onException($e->getFile(), $e->getLine(), $e->getMessage(), $e->getCode());
 });
-
-function onException(string $path, int $line, string $str, int $no){
+function onException(string $path, int $line, string $str, int $no) {
 	$path = str_replace(getcwd(), '', $path); 
 	$str = str_replace(getcwd(), '', $str); 
 	$dump = (
@@ -17,11 +20,7 @@ function onException(string $path, int $line, string $str, int $no){
 	die($_GET['plain'] == 'true' ? $dump : json_encode(['success' => false, 'response' => $dump]));
 }
 
-set_time_limit(30);
-header('Content-Type: text/plain; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-require_once('Main.php');
-
-$result = onMessage($_GET['id'], $_GET['msg']);
-echo($_GET['plain'] == 'true' ? $result : json_encode(['success' => true, 'response' => $result]));
-?>
+require_once('Spelako.php');
+Spelako::loadCommands();
+$result = Spelako::execute($_GET['command'], $_GET['user']);
+exit($_GET['plain'] == 'true' ? $result : json_encode(['success' => true, 'response' => $result]));
