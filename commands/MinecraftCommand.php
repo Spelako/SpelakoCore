@@ -34,7 +34,7 @@ class MinecraftCommand{
 			$profile ? '名称: %2$s' : '玩家名称查询请求发送失败. 请稍后再试.'
 		], [
 			$uuid,
-			SpelakoUtils::buildString($placeholder)
+			is_array($placeholder) ? SpelakoUtils::buildString($placeholder) : $placeholder
 		]);
 	}
 
