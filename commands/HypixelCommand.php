@@ -27,6 +27,7 @@ class HypixelCommand {
 		$p = self::fetchGeneralStats($args[1]);
 		if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
 		if($p == 'ERROR_PLAYER_NOT_FOUND') return '找不到此玩家, 请确认拼写无误.';
+		
 		switch($args[2]) {
 			case 'guild':
 			case 'g':
@@ -196,45 +197,51 @@ class HypixelCommand {
 						if(!$profile_id) return sprintf('无法找到玩家 $s 的此空岛生存存档.', $p['displayname']);
 						$placeholder = array();
 						$auctions = self::fetchSkyblockAuction($profile_id);
-						if(!$auctions) return '无法获取玩家 %1$s 的空岛生存 %2$s 存档物品拍卖信息';
+						if(!$auctions) return sprintf('获取玩家 %1$s 的空岛生存 %2$s 存档物品拍卖信息失败.', $p['displayname'], $args[4]);
 						$items = array_values(array_filter($auctions, function($current) {return !$current['claimed'];}));
-						foreach($auctions as $index => $item) {
-							if($index >= 5) {
-								array_push($placeholder, sprintf(
-									'... 等共 %d 件正在拍卖的物品.',
-									count($items)
-								));
-								break;
-							}
-							array_push($placeholder, $item['bin']
+						$total = count($auctions);
+						$totPage = ceil ($total / 5);
+						$curPage = (int) $args[5];
+						if ($curPage > $totPage) $curPage = $totPage;
+						if ($curPage == 0) $curPage = 1;
+						for($i = ($curPage-1)*5; $i < $curPage*5 && $i < $total; $i ++) {
+							$item = $auctions[$i];
+							array_push($placeholder, !$item['bin']
 								? SpelakoUtils::buildString([
-									'# %1$s',
-									'	最高出价: %2$s | 起拍价: %3$s',
-									'	结束时间: %4$s'
+									'# %1$s (%2$s)',
+									'	最高出价: %3$s | 起拍价: %4$s',
+									'	结束时间: %5$s'
 								], [
 									$item['item_name'],
+									$item['tier'],
 									number_format($item['highest_bid_amount']),
 									number_format($item['starting_bid']),
 									SpelakoUtils::convertTime($item['end'], timezone_offset: self::TIMEZONE_OFFSET)
 								])
 								: SpelakoUtils::buildString([
-									'# %1$s',
-									'	一口价: %2$s',
-									'	结束时间: %3$s'
+									'# %1$s (%2$s)',
+									'	一口价: %3$s',
+									'	结束时间: %4$s'
 								], [
 									$item['item_name'],
+									$item['tier'],
 									number_format($item['starting_bid']),
 									SpelakoUtils::convertTime($item['end'], timezone_offset: self::TIMEZONE_OFFSET)
 								])
 							);
 						}
+						if (!$placeholder) 
+							return '此存档没有正在拍卖的物品.'.((count($profiles) > 1) ? ' 你可以尝试查询此玩家的其他存档.' : '');
 						return SpelakoUtils::buildString([
 							'%1$s 的空岛生存 %2$s 存档物品拍卖信息:',
-							'%2$s', // Body placeholder
+							'%3$s', // Body placeholder
+							'当前展示 %4$d/%5$d 页，使用 /hypixel <玩家名> sb a <存档名/序号> <页数> 来查看具体页数的拍卖信息.', 
 							], [
 								self::getNetworkRank($p).$p['displayname'],
 								$profiles[$profile_id]['cute_name'],
-								$placeholder ? SpelakoUtils::buildString($placeholder) : '此存档没有正在拍卖的物品.'.((count($profiles) > 1) ? ' 你可以尝试查询此玩家的其他存档.' : '')
+								SpelakoUtils::buildString($placeholder),
+								$curPage,
+								$totPage,
 							]
 						);
 					case 'skills':
@@ -316,7 +323,11 @@ class HypixelCommand {
 				if ($r == 'ERROR_RECENT_GAMES_NOT_FOUND') return sprintf('玩家 %s 没有最近的游戏, 或在 API 设置中禁止了此请求.', $p['displayname']);
 				$placeholder = array();
 				$total = count($r);
-				for($i = 0; $i < ($total < 10 ? $total : 10); $i ++) {
+				$totPage = ceil ($total / 5);
+				$curPage = (int) $args[3];
+				if ($curPage > $totPage) $curPage = $totPage;
+				if ($curPage == 0) $curPage = 1;
+				for($i = ($curPage-1)*5; $i < $curPage*5 && $i < $total; $i ++) {
 					array_push($placeholder, SpelakoUtils::buildString([
 						'# %1$s%2$s%3$s',
 						'	开始时间: %4$s',
@@ -331,10 +342,13 @@ class HypixelCommand {
 				}
 				return SpelakoUtils::buildString([
 					'%1$s 的最近游玩的游戏:',
-					'%2$s'
+					'%2$s',
+					'当前展示 %3$d/%4$d 页，使用 /hypixel <玩家名> r <页数> 来查看具体页数的游戏数据.'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
-					SpelakoUtils::buildString($placeholder)
+					SpelakoUtils::buildString($placeholder),
+					$curPage,
+					$totPage,
 				]);
 			default:
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
@@ -345,7 +359,7 @@ class HypixelCommand {
 					'%1$s 的 Hypixel 信息:',
 					'等级: %2$.3f | 人品: %3$d',
 					'成就点数: %4$d',
-					'最近常玩: %5$s',
+					'最近游玩: %5$s',
 					'首次登录: %6$s',
 					'上次登录: %7$s',
 					$online ? '● 此玩家在线了 %8$s, '.($s ? ($statusAvailable ? '当前在%9$s%10$s%11$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %8$s'
@@ -368,34 +382,44 @@ class HypixelCommand {
 	private static function fetchGeneralStats($player) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => self::API_KEY, 'name' => $player], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['player']) == null) return 'ERROR_PLAYER_NOT_FOUND';
+		if(($result = json_decode($src, true)['player']) == null) {
+			if(($result = json_decode($src, true)['success']) == null) 	return 'ERROR_REQUEST_FAILED';
+			return 'ERROR_PLAYER_NOT_FOUND';
+		}
 		return $result;
 	}
 
 	private static function fetchGuild($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => self::API_KEY, 'player' => $playerUuid], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['guild']) == null) return 'ERROR_GUILD_NOT_FOUND';
+		if(($result = json_decode($src, true)['guild']) == null) {
+			if(($result = json_decode($src, true)['success']) == null) 	return 'ERROR_REQUEST_FAILED';
+			return 'ERROR_GUILD_NOT_FOUND';
+		}
 		return $result;
 	}
 	
 	private static function fetchRecentGames($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => self::API_KEY, 'uuid' => $playerUuid], 45);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['games']) == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
+		if(($result = json_decode($src, true)['games']) == null) { 
+			if(($result = json_decode($src, true)['success']) == null) 	return 'ERROR_REQUEST_FAILED';
+			return 'ERROR_RECENT_GAMES_NOT_FOUND';
+		}
 		return $result;
 	}
 
 	private static function fetchStatus($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
 		if($src) {
+			if(($result = json_decode($src, true)['success']) == null) 	return false;
 			return json_decode($src, true)['session'];
 		}
 		return false;
 	}
 	
 	private static function fetchSkyblockAuction($profile) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 10);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 45);
 		if($src && (($result = json_decode($src, true)['auctions']) != null)) {
 			return $result;
 		}
