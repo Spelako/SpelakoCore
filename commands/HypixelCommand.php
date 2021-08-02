@@ -320,7 +320,7 @@ class HypixelCommand {
 					array_push($placeholder, SpelakoUtils::buildString([
 						'# %1$s%2$s%3$s',
 						'	开始时间: %4$s',
-						$r[$i]['ended'] ? '	结束时间: %5$s' : '	● 正在游戏中...'
+						$r[$i]['ended'] ? '	结束时间: %5$s' : '	● 游戏进行中...'
 					], [
 						self::getGameName($r[$i]['gameType']),
 						self::getModeName($r[$i]['mode']),
