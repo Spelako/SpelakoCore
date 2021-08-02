@@ -237,7 +237,6 @@ class HypixelCommand {
 								$placeholder ? SpelakoUtils::buildString($placeholder) : '此存档没有正在拍卖的物品.'.((count($profiles) > 1) ? ' 你可以尝试查询此玩家的其他存档.' : '')
 							]
 						);
-						break;
 					case 'skills':
 					case 'skill':
 					case 'sk':
@@ -314,34 +313,33 @@ class HypixelCommand {
 			case 'recent':
 				$r = self::fetchRecentGames($p['uuid']);
 				if ($r == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
-				if (($showMax = sizeof($r)) == 0) return '该玩家没有最近的游戏, 可能是该玩家在 API 设置中阻止了获取最近游戏的请求.';
-				$showNum = (int)$args[3];
-				printf("%d",$showNum);
-				if ($showNum == 0 ) $showNum = 5;
-				if ($showNum > $showMax) $showNum = $showMax;
-				printf("%d???%d",$showMax,$showNum);
-				for ($i=0; $i < $showNum; $i++){
-					if ($i != 0) $returnString .= PHP_EOL;
-					$returnString .= SpelakoUtils::buildString([
+				if ($r == 'ERROR_RECENT_GAMES_NOT_FOUND') return sprintf('玩家 %s 没有最近的游戏, 或在 API 设置中禁止了此请求.', $p['displayname']);
+				$placeholder = array();
+				$total = count($r);
+				for($i = 0; $i < ($total < 10 ? $total : 10); $i ++) {
+					array_push($placeholder, SpelakoUtils::buildString([
 						'# %1$s%2$s%3$s',
 						'	开始时间: %4$s',
-						$r[$i]['ended'] ? '	结束时间: %5$s' : ''
+						$r[$i]['ended'] ? '	结束时间: %5$s' : '	● 正在游戏中...'
 					], [
 						self::getGameName($r[$i]['gameType']),
 						self::getModeName($r[$i]['mode']),
 						($statusMap = self::getMapName($r[$i]['map'])) != '' ? $statusMap.'地图' : '',
 						SpelakoUtils::convertTime($r[$i]['date'], timezone_offset: self::TIMEZONE_OFFSET),
 						$r[$i]['ended'] ? SpelakoUtils::convertTime($r[$i]['ended'], timezone_offset: self::TIMEZONE_OFFSET) : ''
-						]);
+					]));
 				}
-				return $returnString;
-				break;
-			
+				return SpelakoUtils::buildString([
+					'%1$s 的最近游玩的游戏:',
+					'%2$s'
+				], [
+					self::getNetworkRank($p).$p['displayname'],
+					SpelakoUtils::buildString($placeholder)
+				]);
 			default:
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
-				if ($online) $s = self::fetchStatus($p['uuid']);
-				if ($s != 'ERROR_REQUEST_FAILED') $enableStatus = $online == $s['online'];
-				printf("enableStatus: %d\n", $enableStatus);
+				$s = $online ? self::fetchStatus($p['uuid']) : false;
+				$statusAvailable = ($s && $s['online'] == true);
 				return SpelakoUtils::buildString([
 					isset($args[2]) ? '未知的分类, 已跳转至默认分类.' : '',
 					'%1$s 的 Hypixel 信息:',
@@ -350,8 +348,7 @@ class HypixelCommand {
 					'最近常玩: %5$s',
 					'首次登录: %6$s',
 					'上次登录: %7$s',
-					$online ? '● 此玩家在线了 %8$s, ' .($s == 'ERROR_REQUEST_FAILED' ? '获取当前游戏时出错.' : ($enableStatus ? '当前在%9$s%10$s%11$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' )) : '上次退出: %8$s'
-					//'● 此玩家在线了 %8$s, 当前在%9$s%10$s%11$s中.'
+					$online ? '● 此玩家在线了 %8$s, '.($s ? ($statusAvailable ? '当前在%9$s%10$s%11$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %8$s'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					self::getNetworkLevel($p['networkExp']),
@@ -361,9 +358,9 @@ class HypixelCommand {
 					SpelakoUtils::convertTime($p['firstLogin'], timezone_offset: self::TIMEZONE_OFFSET),
 					SpelakoUtils::convertTime($p['lastLogin'], timezone_offset: self::TIMEZONE_OFFSET),
 					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : SpelakoUtils::convertTime($p['lastLogout'], timezone_offset: self::TIMEZONE_OFFSET),
-					$enableStatus ? self::getGameName($s['gameType']) : '',
-					$enableStatus ? self::getModeName($s['mode']) : '',
-					$enableStatus ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
+					$statusAvailable ? self::getGameName($s['gameType']) : '',
+					$statusAvailable ? self::getModeName($s['mode']) : '',
+					$statusAvailable ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
 				]);
 		}
 	}
@@ -385,7 +382,16 @@ class HypixelCommand {
 	private static function fetchRecentGames($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		return json_decode($src, true)['games'];
+		if(($result = json_decode($src, true)['games']) == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
+		return $result;
+	}
+
+	private static function fetchStatus($playerUuid) {
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
+		if($src) {
+			return json_decode($src, true)['session'];
+		}
+		return false;
 	}
 	
 	private static function fetchSkyblockAuction($profile) {
@@ -394,13 +400,6 @@ class HypixelCommand {
 			return $result;
 		}
 		return false;
-	}
-
-	private static function fetchStatus($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10 );
-		if(!$src) return 'ERROR_REQUEST_FAILED';
-		$result = json_decode($src, true)['session'];
-		return $result;
 	}
 
 	private static function fetchSkyblockProfile($profile) {
@@ -475,7 +474,7 @@ class HypixelCommand {
 
 
 	private static function getGameName($typeName) {
-		return match($typeName){
+		return match($typeName) {
 			'QUAKECRAFT' => '未来射击',
 			'WALLS' => '战墙',
 			'PAINTBALL' => '彩弹射击',
@@ -511,10 +510,7 @@ class HypixelCommand {
 	}
 	
 	private static function getMapName($mapName) {
-		return match($mapName){
-			// 求帮忙把地图名的转译给整一下 QwQ
-			// 目前我好像也不知道哪里有地图列表
-			
+		return match($mapName) {
 			//Arcade Start
 			'Dead End' => '穷途末路',
 			'Bad Blood' => '坏血之宫',
@@ -619,25 +615,16 @@ class HypixelCommand {
 			'Tundra' => '苔原',
 			'Frost Bound' => '冰霜巨城',
 			'Twisted Grove' => '环合密林',
-
 			//Skywanrs End
-			
-			// Murder Mystery Start
-
-			// Murder Mystery End
 			null => '',
 			default => ' '.$mapName.' '
-			
-			
-			
 		};
-		
 	}
 	
 	private static function getModeName($modeName) {
-		return match($modeName){
+		return match($modeName) {
 			'LOBBY' => '大厅',
-			
+
 			// 有遗漏的欢迎补充
 			// 翻译和整理模式名翻译得累死我了
 			// 模式名参见 https://hypixel.net/threads/guide-play-commands-useful-tools-mods-more-updated-12-25-20.1025608/
@@ -646,12 +633,12 @@ class HypixelCommand {
 			'domination' => '抢点战模式',
 			'team_deathmatch' => '团队死亡竞赛模式',
 			// Warlords End
-			
+
 			// Mega Walls Start
 			'standard' => '标准模式',
 			'face_off' => '对决模式',
 			// Mega Walls End
-			
+
 			// Blitz Survival Games / Speed UHC / Smash Heroes Start
 			//'solo_normal' => '单挑模式',
 			//'teams_normal' => '团队模式',
@@ -660,8 +647,7 @@ class HypixelCommand {
 			'1v1_normal' => ' 1v1 模式',
 			'friends_normal' => ' Friends 1v1v1v1 模式',
 			// Blitz Survival Games / Speed UHC / Smash Heroes End
-			
-			
+
 			// Skyblock Start
 			'dynamic' => '私人岛屿',
 			'hub' => '主岛屿',
@@ -676,7 +662,7 @@ class HypixelCommand {
 			'foraging_1' => '公园',
 			'dungeon_hub' => '地牢大厅',
 			// Skyblock End
-			
+
 			// Skywars Start
 			'ranked_normal' => '排位模式',
 			'solo_normal' => '单挑普通模式',
@@ -695,7 +681,7 @@ class HypixelCommand {
 			'teams_insane_lucky' => '双人幸运方块模式',
 			'solo_insane_hunters_vs_beasts' => '狩猎对决模式',
 			// Skywars End
-			
+
 			//TNT Games Start
 			'TNTRUN' => '方块掘战',
 			'PVPRUN' => 'PVP 方块掘战',
@@ -703,7 +689,7 @@ class HypixelCommand {
 			'TNTAG' => '烫手 TNT ',
 			'CAPTURE' => '法师掘战',
 			//TNT Games End
-			
+
 			// Bedwars Start
 			'BEDWARS_EIGHT_ONE' => '单挑模式',
 			'BEDWARS_EIGHT_TWO' => '双人模式',
@@ -724,7 +710,7 @@ class HypixelCommand {
 			'BEDWARS_FOUR_FOUR_LUCKY' => ' 4v4v4v4 幸运方块模式',
 			'BEDWARS_PRACTICE' => '练习模式',
 			// Bedwars End
-			
+
 			// Arcade Start
 			'HOLE_IN_THE_WALL' => '人体打印机',
 			'SOCCER' => '足球',
@@ -746,27 +732,27 @@ class HypixelCommand {
 			'DAYONE' => '行尸走肉',
 			'PVP_CTW' => '捕捉羊毛大作战',
 			// Arcade End
-			
+
 			// Cops and Crims Start
 			'normal' => '爆破模式',
 			'deatmatch' => '团队死亡竞赛模式',
 			'NORMAL_PARTY' => '挑战模式 - 爆破模式',
 			'DEATHMATCH_PARTY' => '挑战模式 - 团队死亡竞赛模式',
 			// Cops and Crims End
-			
+
 			// Build Battle Start
 			'BUILD_BATTLE_SOLO_NORMAL' => '单人模式',
 			'BUILD_BATTLE_TEAMS_NORMAL' => '团队模式',
 			'BUILD_BATTLE_SOLO_PRO' => '高手模式',
 			'BUILD_BATTLE_GUESS_THE_BUILD' => '建筑猜猜乐',
 			// Build battle End
-			
+
 			// UHC start
 			'SOLO' => '单挑模式',
 			'TEAMS' => '组队模式',
 			'EVENTS' => '活动模式',
 			// UHC End
-			
+
 			// Duels start
 			'DUELS_CLASSIC_DUEL' => '经典决斗',
 			'DUELS_SW_DUEL' => '空岛战争决斗',
@@ -791,27 +777,25 @@ class HypixelCommand {
 			'DUELS_BRIDGE_2V2V2V2' => '战桥 2v2v2v2 决斗',
 			'DUELS_BRIDGE_3V3V3V3' => '战桥 4v4v4v4 决斗',
 			// Duels end
-			
+
 			// Murder Mystery Start
 			'MURDER_CLASSIC' => '经典模式',
 			'MURDER_DOUBLE_UP' => '双倍模式',
 			'MURDER_ASSASSINS' => '刺客模式',
 			'MURDER_INFECTION' => '感染模式',
 			// Murder Mystery End
-			
+
 			// TowerWars Start
 			'TOWERWARS_SOLO' => '单挑模式',
 			'TOWERWARS_TEAM_OF_TWO' => '双人模式',
 			// TowerWars End
-			
+
 			null => '',
 			default => ' '.$modeName.' '
-			
 		};
-		
 	}
 	
-		// Clears the Minecraft formatting string of a file
+	// Clears the Minecraft formatting string of a file
 	private static function getPlainString($formattedStr) {
 		$plainStr = str_replace(
 			array('§0', '§1', '§2', '§3', '§4', '§5', '§6', '§7', '§8', '§9', '§a', '§b', '§c', '§d', '§e', '§f', '§k', '§l', '§m', '§n', '§o', '§r')
@@ -827,6 +811,5 @@ class HypixelCommand {
 		}
 		return false;
 	}
-	
 }
 ?>
