@@ -194,54 +194,61 @@ class HypixelCommand {
 					case 'au':
 					case 'a':
 						$profile_id = self::getSkyblockProfileID($profiles, $args[4] ? : 1);
-						if(!$profile_id) return sprintf('无法找到玩家 $s 的此空岛生存存档.', $p['displayname']);
+						if(!$profile_id) return sprintf('无法找到玩家 %s 的此空岛生存存档.', $p['displayname']);
 						$placeholder = array();
 						$auctions = self::fetchSkyblockAuction($profile_id);
-						if(!$auctions) return sprintf('获取玩家 %1$s 的空岛生存 %2$s 存档物品拍卖信息失败.', $p['displayname'], $args[4]);
-						$items = array_values(array_filter($auctions, function($current) {return !$current['claimed'];}));
+						if($auctions == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
+						if($auctions == 'ERROR_AUCTIONS_NOT_FOUND') return sprintf('找不到玩家 %1$s 的空岛生存 %2$s 存档中的物品拍卖信息.', $p['displayname'], $profiles[$profile_id]['cute_name']).((count($profiles) > 1) ? ' 你可以尝试查询此玩家的其他存档.' : '');
 						$total = count($auctions);
-						$totPage = ceil ($total / 5);
-						$curPage = (int) $args[5];
-						if ($curPage > $totPage) $curPage = $totPage;
-						if ($curPage == 0) $curPage = 1;
-						for($i = ($curPage-1)*5; $i < $curPage*5 && $i < $total; $i ++) {
+						$totPages = ceil($total / 5);
+						$curPage = ($args[5] > $totPages) ? $totPages : (int)$args[5];
+						if($curPage < 1) $curPage = 1;
+						for($i = ($curPage - 1) * 5; $i < $curPage * 5 && $i < $total; $i ++) {
 							$item = $auctions[$i];
-							array_push($placeholder, !$item['bin']
+							array_push($placeholder, $item['bin']
 								? SpelakoUtils::buildString([
 									'# %1$s (%2$s)',
-									'	最高出价: %3$s | 起拍价: %4$s',
-									'	结束时间: %5$s'
+									'	一口价: %3$s',
+									'	结束时间: %4$s',
+									'	状态: %5$s'
+								], [
+									$item['item_name'],
+									$item['tier'],
+									number_format($item['starting_bid']),
+									SpelakoUtils::convertTime($item['end'], timezone_offset: self::TIMEZONE_OFFSET),
+									$item['claimed_bidders'] ? '已被购买' : (time() < $item['end'] / 1000 ? '进行中' : '已结束, 无买主')
+								])
+								: SpelakoUtils::buildString([
+									'# %1$s (%2$s)',
+									time() < $item['end'] / 1000 ? '	最高出价: %3$s' : '	成交价: %3$s',
+									'	出价数: %4$d',
+									'	起拍价: %5$s',
+									'	结束时间: %6$s',
+									'	状态: %7$s'
 								], [
 									$item['item_name'],
 									$item['tier'],
 									number_format($item['highest_bid_amount']),
+									count($item['bids']),
 									number_format($item['starting_bid']),
-									SpelakoUtils::convertTime($item['end'], timezone_offset: self::TIMEZONE_OFFSET)
-								])
-								: SpelakoUtils::buildString([
-									'# %1$s (%2$s)',
-									'	一口价: %3$s',
-									'	结束时间: %4$s'
-								], [
-									$item['item_name'],
-									$item['tier'],
-									number_format($item['starting_bid']),
-									SpelakoUtils::convertTime($item['end'], timezone_offset: self::TIMEZONE_OFFSET)
+									SpelakoUtils::convertTime($item['end'], timezone_offset: self::TIMEZONE_OFFSET),
+									time() < $item['end'] / 1000 ? '进行中' : '已结束'
 								])
 							);
 						}
-						if (!$placeholder) 
-							return '此存档没有正在拍卖的物品.'.((count($profiles) > 1) ? ' 你可以尝试查询此玩家的其他存档.' : '');
 						return SpelakoUtils::buildString([
 							'%1$s 的空岛生存 %2$s 存档物品拍卖信息:',
 							'%3$s', // Body placeholder
-							'当前展示 %4$d/%5$d 页，使用 /hypixel <玩家名> sb a <存档名/序号> <页数> 来查看具体页数的拍卖信息.', 
+							'当前展示 %4$d/%5$d 页.',
+							'使用 /hyp %6$s sb a %7$s <页数> 来查看具体页数的拍卖信息.', 
 							], [
 								self::getNetworkRank($p).$p['displayname'],
 								$profiles[$profile_id]['cute_name'],
 								SpelakoUtils::buildString($placeholder),
 								$curPage,
-								$totPage,
+								$totPages,
+								$p['displayname'],
+								$profiles[$profile_id]['cute_name']
 							]
 						);
 					case 'skills':
@@ -249,7 +256,7 @@ class HypixelCommand {
 					case 'sk':
 					case 's':
 						$profile_id = self::getSkyblockProfileID($profiles, $args[4] ? : 1);
-						if(!$profile_id) return sprintf('无法找到玩家 $s 的此空岛生存存档.', $p['displayname']);
+						if(!$profile_id) return sprintf('无法找到玩家 %s 的此空岛生存存档.', $p['displayname']);
 						$profile = self::fetchSkyblockProfile($profile_id);
 						$member = $profile['members'][$p['uuid']];
 						// If possible (allowed by player), access Skyblock Profile API insdead of Player API.
@@ -305,7 +312,7 @@ class HypixelCommand {
 							'%1$s 的 %2$d 个空岛生存存档 (序号 - 存档名):',
 							'%3$s',
 							'欲查询其空岛生存信息, 请使用此命令:',
-							'/hypixel %4$s sb <分类> [存档名/序号]',
+							'/hyp %4$s sb <分类> [存档名/序号]',
 							'"分类" 可以是下列之一:',
 							'- skills, skill, sk, s',
 							'- auctions, auction, au, a'
@@ -323,11 +330,10 @@ class HypixelCommand {
 				if ($r == 'ERROR_RECENT_GAMES_NOT_FOUND') return sprintf('玩家 %s 没有最近的游戏, 或在 API 设置中禁止了此请求.', $p['displayname']);
 				$placeholder = array();
 				$total = count($r);
-				$totPage = ceil ($total / 5);
-				$curPage = (int) $args[3];
-				if ($curPage > $totPage) $curPage = $totPage;
-				if ($curPage == 0) $curPage = 1;
-				for($i = ($curPage-1)*5; $i < $curPage*5 && $i < $total; $i ++) {
+				$totPages = ceil ($total / 5);
+				$curPage = ($args[3] > $totPages) ? $totPages : (int)$args[3];
+				if($curPage < 1) $curPage = 1;
+				for($i = ($curPage - 1) * 5; $i < $curPage * 5 && $i < $total; $i ++) {
 					array_push($placeholder, SpelakoUtils::buildString([
 						'# %1$s%2$s%3$s',
 						'	开始时间: %4$s',
@@ -343,12 +349,13 @@ class HypixelCommand {
 				return SpelakoUtils::buildString([
 					'%1$s 的最近游玩的游戏:',
 					'%2$s',
-					'当前展示 %3$d/%4$d 页，使用 /hypixel <玩家名> r <页数> 来查看具体页数的游戏数据.'
+					'当前展示 %3$d/%4$d 页，使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					SpelakoUtils::buildString($placeholder),
 					$curPage,
-					$totPage,
+					$totPages,
+					$p['displayname'],
 				]);
 			default:
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
@@ -383,7 +390,6 @@ class HypixelCommand {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => self::API_KEY, 'name' => $player], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
 		if(($result = json_decode($src, true)['player']) == null) {
-			if(($result = json_decode($src, true)['success']) == null) 	return 'ERROR_REQUEST_FAILED';
 			return 'ERROR_PLAYER_NOT_FOUND';
 		}
 		return $result;
@@ -393,7 +399,6 @@ class HypixelCommand {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => self::API_KEY, 'player' => $playerUuid], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
 		if(($result = json_decode($src, true)['guild']) == null) {
-			if(($result = json_decode($src, true)['success']) == null) 	return 'ERROR_REQUEST_FAILED';
 			return 'ERROR_GUILD_NOT_FOUND';
 		}
 		return $result;
@@ -402,8 +407,7 @@ class HypixelCommand {
 	private static function fetchRecentGames($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => self::API_KEY, 'uuid' => $playerUuid], 45);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['games']) == null) { 
-			if(($result = json_decode($src, true)['success']) == null) 	return 'ERROR_REQUEST_FAILED';
+		if(($result = json_decode($src, true)['games']) == null) {
 			return 'ERROR_RECENT_GAMES_NOT_FOUND';
 		}
 		return $result;
@@ -419,11 +423,10 @@ class HypixelCommand {
 	}
 	
 	private static function fetchSkyblockAuction($profile) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 45);
-		if($src && (($result = json_decode($src, true)['auctions']) != null)) {
-			return $result;
-		}
-		return false;
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 300);
+		if(!$src) return 'ERROR_REQUEST_FAILED';
+		if(($result = json_decode($src, true)['auctions']) == null) return 'ERROR_AUCTIONS_NOT_FOUND';
+		return array_reverse($result);
 	}
 
 	private static function fetchSkyblockProfile($profile) {
@@ -535,11 +538,11 @@ class HypixelCommand {
 	
 	private static function getMapName($mapName) {
 		return match($mapName) {
-			//Arcade Start
+			// Arcade Start
 			'Dead End' => '穷途末路',
 			'Bad Blood' => '坏血之宫',
 			'Alien Arcadium' => '外星游乐园',
-			//ARCADE End
+			// ARCADE End
 			
 			// Bedwars Start
 			'Amazon' => '亚马逊雨林',
