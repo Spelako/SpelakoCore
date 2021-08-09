@@ -10,10 +10,19 @@ class HypixelCommand {
 	const SKYBLOCK_SKILLS = ['taming', 'farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting'];
 	const TIMEZONE_OFFSET = Spelako::CONFIG['timezone_offset'];
 
+	const BOSS1 = ['炸弹僵尸', '史莱姆王', '巨人'];
+	const BOSS1_SOURCE = ['tnt', 'king_slime', 'giant'];
+	const BOSS2 = ['炼狱', '凋零', '长者'];
+	const BOSS2_SOURCE = ['inferno', 'wither', 'the_old_one'];
+	const BOSS3 = ['巢穴之母', 'HIM', '彩虹巨人'];
+	const BOSS3_SOURCE = ['broodmother', 'herobrine', 'giant_rainbow'];
+	const BOSS4 = ['', '', ' | 世界毁灭者击杀：'];
+	const BOSS4_SOURCE = ['null', 'null', 'world_ender'];
+
 	public static function execute(array $args) {
 		if(!isset($args[1])) return SpelakoUtils::buildString([
-			'正确用法: %s',
-			'"分类" 可以是下列之一:',
+			'用法: %s',
+			'目前支持的 "分类" 可以是下列之一:',
 			'- recent, r',
 			'- guild, g',
 			'- bedwars, bw',
@@ -23,6 +32,7 @@ class HypixelCommand {
 			'- blitzsg, bsg, hungergames',
 			'- zombies, zb',
 			'- skyblock, sb',
+			'更多分类正在开发中...',
 		], [self::USAGE]);
 		$p = self::fetchGeneralStats($args[1]);
 		if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
@@ -57,134 +67,225 @@ class HypixelCommand {
 			case 'hungergames':
 				return SpelakoUtils::buildString([
 					'%1$s 的闪电饥饿游戏统计信息:',
-					'游玩次数: %2$d | 硬币: %3$d | 开箱数: %4$d',
-					'击杀: %5$d | 死亡: %6$d | K/D: %7$.3f'
+					'游玩次数: %2$s | 硬币: %3$s | 开箱数: %4$s',
+					'击杀: %5$s | 死亡: %6$s | K/D: %7$.3f'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
-					$p['stats']['HungerGames']['games_played'],
-					$p['stats']['HungerGames']['coins'],
-					$p['stats']['HungerGames']['chests_opened'],
-					$p['stats']['HungerGames']['kills'],
-					$p['stats']['HungerGames']['deaths'],
+					number_format($p['stats']['HungerGames']['games_played']),
+					number_format($p['stats']['HungerGames']['coins']),
+					number_format($p['stats']['HungerGames']['chests_opened']),
+					number_format($p['stats']['HungerGames']['kills']),
+					number_format($p['stats']['HungerGames']['deaths']),
 					SpelakoUtils::div($p['stats']['HungerGames']['kills'], $p['stats']['HungerGames']['deaths'])
 				]);
 			case 'uhc':
 				return SpelakoUtils::buildString([
 					'%1$s 的极限生存冠军统计信息:',
-					'分数: %2$d | 硬币: %3$d | 胜场: %4$d',
-					'击杀: %5$d | 死亡: %6$d | K/D: %7$.3f'
+					'分数: %2$s | 硬币: %3$s | 胜场: %4$s',
+					'击杀: %5$s | 死亡: %6$s | K/D: %7$.3f'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
-					$p['stats']['UHC']['score'],
-					$p['stats']['UHC']['coins'],
-					$p['stats']['UHC']['wins'],
-					$p['stats']['UHC']['kills'],
-					$p['stats']['UHC']['deaths'],
+					number_format($p['stats']['UHC']['score']),
+					number_format($p['stats']['UHC']['coins']),
+					number_format($p['stats']['UHC']['wins']),
+					number_format($p['stats']['UHC']['kills']),
+					number_format($p['stats']['UHC']['deaths']),
 					SpelakoUtils::div($p['stats']['UHC']['kills'], $p['stats']['UHC']['deaths'])
 				]);
 			case 'megawalls':
 			case 'mw':
 				return SpelakoUtils::buildString([
 					'%1$s 的超级战墙统计信息:',
-					'凋零伤害: %2$d | 职业: %3$d | 硬币: %4$d',
-					'击杀: %5$d | 助攻: %6$d | 死亡: %7$d | K/D: %8$.3f',
-					'终杀: %9$d | 终助: %10$d | 终死: %11$d | FKDR: %12$.3f',
-					'胜场: %13$d | 败场: %14$d | W/L: %15$.3f'
+					'凋零伤害: %2$s | 职业: %3$s | 硬币: %4$s',
+					'击杀: %5$s | 助攻: %6$s | 死亡: %7$s | K/D: %8$.3f',
+					'终杀: %9$s | 终助: %10$s | 终死: %11$s | FKDR: %12$.3f',
+					'胜场: %13$s | 败场: %14$s | W/L: %15$.3f'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
-					$p['stats']['Walls3']['wither_damage'],
+					number_format($p['stats']['Walls3']['wither_damage']),
 					$p['stats']['Walls3']['chosen_class'],
-					$p['stats']['Walls3']['coins'],
-					$p['stats']['Walls3']['kills'],
-					$p['stats']['Walls3']['assists'],
-					$p['stats']['Walls3']['deaths'],
+					number_format($p['stats']['Walls3']['coins']),
+					number_format($p['stats']['Walls3']['kills']),
+					number_format($p['stats']['Walls3']['assists']),
+					number_format($p['stats']['Walls3']['deaths']),
 					SpelakoUtils::div($p['stats']['Walls3']['kills'], $p['stats']['Walls3']['deaths']),
-					$p['stats']['Walls3']['final_kills'],
-					$p['stats']['Walls3']['final_assists'],
-					$p['stats']['Walls3']['final_deaths'],
+					number_format($p['stats']['Walls3']['final_kills']),
+					number_format($p['stats']['Walls3']['final_assists']),
+					number_format($p['stats']['Walls3']['final_deaths']),
 					SpelakoUtils::div($p['stats']['Walls3']['final_kills'], $p['stats']['Walls3']['final_deaths']),
-					$p['stats']['Walls3']['wins'],
-					$p['stats']['Walls3']['losses'],
+					number_format($p['stats']['Walls3']['wins']),
+					number_format($p['stats']['Walls3']['losses']),
 					SpelakoUtils::div($p['stats']['Walls3']['wins'], $p['stats']['Walls3']['losses'])
 				]);
 			case 'skywars':
 			case 'sw':
 				return SpelakoUtils::buildString([
 					'%1$s 的空岛战争统计信息:',
-					'等级: %2$s | 硬币: %3$d | 助攻: %4$d',
-					'击杀: %5$d | 死亡: %6$d | K/D: %7$.3f',
-					'胜场: %8$d | 败场: %9$d | W/L: %10$.3f',
+					'等级: %2$s | 硬币: %3$s | 助攻: %4$s',
+					'击杀: %5$s | 死亡: %6$s | K/D: %7$.3f',
+					'胜场: %8$s | 败场: %9$s | W/L: %10$.3f',
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					self::getPlainString($p['stats']['SkyWars']['levelFormatted']),
-					$p['stats']['SkyWars']['coins'],
-					$p['stats']['SkyWars']['assists'],
-					$p['stats']['SkyWars']['kills'],
-					$p['stats']['SkyWars']['deaths'],
+					number_format($p['stats']['SkyWars']['coins']),
+					number_format($p['stats']['SkyWars']['assists']),
+					number_format($p['stats']['SkyWars']['kills']),
+					number_format($p['stats']['SkyWars']['deaths']),
 					SpelakoUtils::div($p['stats']['SkyWars']['kills'], $p['stats']['SkyWars']['deaths']),
-					$p['stats']['SkyWars']['wins'],
-					$p['stats']['SkyWars']['losses'],
+					number_format($p['stats']['SkyWars']['wins']),
+					number_format($p['stats']['SkyWars']['losses']),
 					SpelakoUtils::div($p['stats']['SkyWars']['wins'], $p['stats']['SkyWars']['losses'])
 				]);
 			case 'bedwars':
 			case 'bw':
+				$mode = match($args[3]) { // [keySuffix, displayName]
+					'eight_one', '8_1', 'solo' => ['eight_one_', '单挑模式'],
+					'eight_two', '8_2', 'doubles', => ['eight_two_', '双人模式'],
+					'four_three', '4_3', '3v3v3v3' => ['four_three_', ' 3v3v3v3 模式'],
+					'four_four', '4_4', '4v4v4v4' => ['four_four_', ' 4v4v4v4 模式'],
+					'two_four', '2_4', ' 4v4' => ['two_four_', '4v4 模式'],
+					'eight_two_rush', '8_4_rush', 'doubles_rush' => ['eight_two_rush_', '双人疾速模式'],
+					'four_four_rush', '4v4v4v4_rush' => ['four_four_rush_', '4v4v4v4 疾速模式'],
+					'eight_two_ultimate', 'eight_two_ult', '8_2_ult', 'doubles_ultimate', 'double_ult' => ['eight_two_ultimate_', '双人超能力模式'],
+					'four_four_ultimate', 'four_four_ult','4_4_ult', '4v4v4v4_ultimate', '4v4v4v4_ult' => ['four_four_ultimate_', ' 4v4v4v4 超能力模式'],
+					'castle' => ['castle_', '40v40城池攻防战模式'],
+					'eight_two_voidless', 'eight_two_void', '8_2_void', 'doubles_voidless', 'double_void' => ['eight_two_voidless_', '双人无虚空模式'],
+					'four_four_voidless', 'four_four_void','4_4_void', '4v4v4v4_voidless', '4v4v4v4_void' => ['four_four_voidless_', ' 4v4v4v4 无虚空模式'],
+					'eight_two_armed', '8_2_armed', 'doubles_armed' => ['eight_two_armed_', '双人枪械模式'],
+					'four_four_armed', '4_4_armed', '4v4v4v4_armed' => ['four_four_armed_', ' 4v4v4v4 枪械模式'],
+					'eight_two_lucky', '8_2_lucky', 'doubles_lucky', 'duo_lucky' => ['eight_two_lucky_', '双人幸运方块模式'],
+					'four_four_lucky', '4_4_lucky', '4v4v4v4_lucky' => ['four_four_lucky_', ' 4v4v4v4 幸运方块模式'],
+					null => ['', '全局'],
+					default => ['ERROR', '']
+				};
+				if($mode[0] == 'ERROR') return SpelakoUtils::buildString([
+						'未知的模式 "%s".',
+						'目前支持的模式可以是下列之一:',
+						'- eight_one, 8_1, solo',
+						'- eight_two, 8_2, doubles',
+						'- four_three, 4_3, 3v3v3v3',
+						'- four_four, 4_4, 4v4v4v4',
+						'- two_four, 2_4,  4v4',
+						'- eight_two_rush, 8_4_rush, doubles_rush',
+						'- four_four_rush, 4v4v4v4_rush',
+						'- eight_two_ultimate, eight_two_ult, 8_2_ult, doubles_ultimate, doubles_ult',
+						'- four_four_ultimate, four_four_ult, 4_4_ult, 4v4v4v4_ultimate, 4v4v4v4_ult',
+						'- castle',
+						'- eight_two_voidless, eight_two_void, 8_2_void, doubles_voidless, double_void',
+						'- four_four_voidless, four_four_void, 4_4_void, 4v4v4v4_voidless, 4v4v4v4_void',
+						'- eight_two_armed, 8_2_armed, doubles_armed',
+						'- four_four_armed, 4_4_armed, 4v4v4v4_armed',
+						'- eight_two_lucky, 8_2_lucky, doubles_lucky',
+						'- four_four_lucky, 4_4_lucky, 4v4v4v4_lucky'
+				], [
+					$args[3]
+				]);
 				return SpelakoUtils::buildString([
-					'%1$s 的起床战争统计信息:',
-					'等级: %2$d | 硬币: %3$d | 拆床: %4$d',
-					'胜场: %5$d | 败场: %6$d | W/L: %7$.3f',
-					'击杀: %8$d | 死亡: %9$d | K/D: %10$.3f',
-					'终杀: %11$d | 终死: %12$d | FKDR: %13$.3f'
+					'%1$s 的起床战争%2$s统计信息:',
+					$mode[0] == '' ? '等级: %3$s | 硬币: %4$s' : '',
+					'拆床: %5$s | 被拆床: %6$s | 连胜: %7$s',
+					'胜场: %8$s | 败场: %9$s | W/L: %10$.3f',
+					'击杀: %11$s | 死亡: %12$s | K/D: %13$.3f',
+					'终杀: %14$s | 终死: %15$s | FKDR: %16$.3f',
+					'此命令详细用法可在此处查看: %17$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
-					$p['achievements']['bedwars_level'],
-					$p['stats']['Bedwars']['coins'],
-					$p['stats']['Bedwars']['beds_broken_bedwars'],
-					$p['stats']['Bedwars']['wins_bedwars'],
-					$p['stats']['Bedwars']['losses_bedwars'],
-					SpelakoUtils::div($p['stats']['Bedwars']['wins_bedwars'], $p['stats']['Bedwars']['losses_bedwars']),
-					$p['stats']['Bedwars']['kills_bedwars'],
-					$p['stats']['Bedwars']['deaths_bedwars'],
-					SpelakoUtils::div($p['stats']['Bedwars']['kills_bedwars'], $p['stats']['Bedwars']['deaths_bedwars']),
-					$p['stats']['Bedwars']['final_kills_bedwars'],
-					$p['stats']['Bedwars']['final_deaths_bedwars'],
-					SpelakoUtils::div($p['stats']['Bedwars']['final_kills_bedwars'], $p['stats']['Bedwars']['final_deaths_bedwars'])
+					$mode[1],
+					number_format($p['achievements']['bedwars_level']),
+					number_format($p['stats']['Bedwars']['coins']),
+					number_format($p['stats']['Bedwars'][$mode[0].'beds_broken_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'beds_lost_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'winstreak']),
+					number_format($p['stats']['Bedwars'][$mode[0].'wins_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'losses_bedwars']),
+					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'wins_bedwars'], $p['stats']['Bedwars'][$mode[0].'losses_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'kills_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'deaths_bedwars']),
+					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'kills_bedwars'], $p['stats']['Bedwars'][$mode[0].'deaths_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'final_kills_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'final_deaths_bedwars']),
+					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'final_kills_bedwars'], $p['stats']['Bedwars'][$mode[0].'final_deaths_bedwars']),
+					Spelako::INFO['link']
 				]);
 			case 'zombies':
-			case 'zombie':
 			case 'zb':
+				
 				$map = match($args[3]) { // [keySuffix, displayName]
-					'deadend', 'de' => ['_deadend', '穷途末路'],
-					'badblood', 'bb' => ['_badblood', '坏血之宫'],
-					'alienarcadium', 'aa' => ['_alienarcadium', '外星游乐园'],
-					default => ['', '全部']
+					'deadend', 'de' => ['_deadend', '穷途末路', 0],
+					'badblood', 'bb' => ['_badblood', '坏血之宫', 1],
+					'alienarcadium', 'aa' => ['_alienarcadium', '外星游乐园', 2],
+					null => ['', '全部'],
+					default => ['ERROR', '']
 				};
+				if($map[0] == 'ERROR') return SpelakoUtils::buildString([
+						'未知的地图 "%s".',
+						'目前支持的地图可以是下列之一:',
+						'- deadend, de',
+						'- badblood, bb',
+						'- alienarcadium, aa',
+				], [
+					$args[3]
+				]);
 				$difficulty = match($args[4]) { // [keySuffix, displayName]
-					'normal', 'norm' => ['_normal', '普通'],
-					'hard' => ['_hard', '困难'],
-					'rip' => ['_rip', '安息'],
-					default => ['', '全部']
+					'normal', 'norm' => ['_normal', '普通难度'],
+					'hard' => ['_hard', '困难难度'],
+					'rip' => ['_rip', '安息难度'],
+					null => ['', '全局'],
+					default => ['ERROR', '']
 				};
+				if($difficulty[0] == 'ERROR') return SpelakoUtils::buildString([
+						'未知的难度 "%s".',
+						'目前支持的难度可以是下列之一:',
+						'- normal, norm',
+						'- hard',
+						'- rip',
+				], [
+					$args[3]
+				]);
+				if ($map[2]==2) $difficulty = ['_normal', ''];
 				return SpelakoUtils::buildString([
-					'%1$s 的僵尸末日%2$s地图%3$s难度统计信息:',
-					'生存总回合数: %4$d | 胜场: %5$d | 最佳回合: %6$d',
-					'僵尸击杀数: %7$d | 复活玩家数: %8$d | 开门数: %9$d',
-					'窗户修复数: %10$d | 被击倒次数: %11$d | 死亡数: %12$d',
-					'此命令详细用法可在此处查看: %13$s/#help'
+					'%1$s 的僵尸末日%2$s地图%3$s统计信息:',
+					'生存总回合数: %4$s | 胜场: %5$s | 最佳回合: %6$s',
+					'僵尸击杀数: %7$s | 复活玩家数: %8$s | 开门数: %9$s',
+					'窗户修复数: %10$s | 被击倒次数: %11$s | 死亡数: %12$s',
+					$difficulty[0] != null && $map != null ? '最快完成 10 回合：%13$s' :'',
+					$difficulty[0] != null && $map != null ? '最快完成 20 回合：%14$s' :'',
+					$difficulty[0] != null && $map != null? '最快通关：%15$s' :'',
+					$map[0] == null ? '射击：%16$s | 命中: %17$s | 爆头: %18$s' :( $difficulty[0] == null || $map[2] == 2 ? '%19$s击杀：%20$s | %21$s击杀：%22$s' :''),
+					$map[0] == null ? '命中率：%23$.1f%% | 爆头率 %24$.1f%%' :( $difficulty[0] == null || $map[2] == 2 ? '%25$s击杀：%26$s%27$s%28$s' : ''),
+					'此命令详细用法可在此处查看: %29$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					$map[1],
 					$difficulty[1],
-					$p['stats']['Arcade']['total_rounds_survived_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['wins_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['best_round_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['zombie_kills_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['players_revived_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['doors_opened_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['windows_repaired_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['times_knocked_down_zombies'.$map[0].$difficulty[0]],
-					$p['stats']['Arcade']['deaths_zombies'.$map[0].$difficulty[0]],
+					number_format($p['stats']['Arcade']['total_rounds_survived_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['wins_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['best_round_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['zombie_kills_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['players_revived_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['doors_opened_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['windows_repaired_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['times_knocked_down_zombies'.$map[0].$difficulty[0]]),
+					number_format($p['stats']['Arcade']['deaths_zombies'.$map[0].$difficulty[0]]),
+					SpelakoUtils::convertTime($p['stats']['Arcade']['fastest_time_10_zombies'.$map[0].$difficulty[0]], true, 'H:i:s'),
+					SpelakoUtils::convertTime($p['stats']['Arcade']['fastest_time_20_zombies'.$map[0].$difficulty[0]], true, 'H:i:s'),
+					SpelakoUtils::convertTime($p['stats']['Arcade']['fastest_time_30_zombies'.$map[0].$difficulty[0]], true, 'H:i:s'),
+					number_format($p['stats']['Arcade']['bullets_shot_zombies']),
+					number_format($p['stats']['Arcade']['bullets_hit_zombies']),
+					number_format($p['stats']['Arcade']['headshots_zombies']),
+					self::BOSS1[$map[2]],
+					number_format($p['stats']['Arcade'][self::BOSS1_SOURCE[$map[2]].'_zombie_kills_zombies']),
+					self::BOSS2[$map[2]],
+					number_format($p['stats']['Arcade'][self::BOSS2_SOURCE[$map[2]].'_zombie_kills_zombies']),
+					100*SpelakoUtils::div($p['stats']['Arcade']['bullets_hit_zombies'], $p['stats']['Arcade']['bullets_shot_zombies']),
+					100*SpelakoUtils::div($p['stats']['Arcade']['headshots_zombies'], $p['stats']['Arcade']['bullets_hit_zombies']),
+					self::BOSS3[$map[2]],
+					number_format($p['stats']['Arcade'][self::BOSS3_SOURCE[$map[2]].'_zombie_kills_zombies']),
+					self::BOSS4[$map[2]],
+					$map[2] == 2 ? number_format($p['stats']['Arcade'][self::BOSS4_SOURCE[$map[2]].'_zombie_kills_zombies']) : '',
 					Spelako::INFO['link']
 				]);
+				
 			case 'skyblock':
 			case 'sb':
 				$profiles = $p['stats']['SkyBlock']['profiles'];
@@ -194,7 +295,26 @@ class HypixelCommand {
 					case 'au':
 					case 'a':
 						$profile_id = self::getSkyblockProfileID($profiles, $args[4] ? : 1);
-						if(!$profile_id) return sprintf('无法找到玩家 %s 的此空岛生存存档.', $p['displayname']);
+						if(!$profile_id) {
+							$placeholder = array();
+							foreach(array_keys($profiles) as $k => $v) {
+								array_push($placeholder, sprintf(
+									'%1$d. %2$s',
+									($k + 1),
+									$profiles[$v]['cute_name']
+								));
+							}
+							return SpelakoUtils::buildString([
+								'无法找到玩家 %1$s 的空岛生存 %2$s 存档.',
+								'此玩家的 %3$d 个空岛生存存档 (序号 - 存档名):',
+									'%4$s',
+							], [
+								$p['displayname'],
+								$args[4],
+								count($profiles),
+								SpelakoUtils::buildString($placeholder),
+							]);
+						}
 						$placeholder = array();
 						$auctions = self::fetchSkyblockAuction($profile_id);
 						if($auctions == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
@@ -256,7 +376,26 @@ class HypixelCommand {
 					case 'sk':
 					case 's':
 						$profile_id = self::getSkyblockProfileID($profiles, $args[4] ? : 1);
-						if(!$profile_id) return sprintf('无法找到玩家 %s 的此空岛生存存档.', $p['displayname']);
+						if(!$profile_id) {
+							$placeholder = array();
+							foreach(array_keys($profiles) as $k => $v) {
+								array_push($placeholder, sprintf(
+									'%1$d. %2$s',
+									($k + 1),
+									$profiles[$v]['cute_name']
+								));
+							}
+							return SpelakoUtils::buildString([
+								'无法找到玩家 %1$s 的空岛生存 %2$s 存档.',
+								'此玩家的 %3$d 个空岛生存存档 (序号 - 存档名):',
+									'%4$s',
+							], [
+								$p['displayname'],
+								$args[4],
+								count($profiles),
+								SpelakoUtils::buildString($placeholder),
+							]);
+						}
 						$profile = self::fetchSkyblockProfile($profile_id);
 						$member = $profile['members'][$p['uuid']];
 						// If possible (allowed by player), access Skyblock Profile API insdead of Player API.
@@ -299,7 +438,7 @@ class HypixelCommand {
 							$skillLevels['runecrafting']
 						]);
 						break;
-					default:
+					null:
 						$placeholder = array();
 						foreach(array_keys($profiles) as $k => $v) {
 							array_push($placeholder, sprintf(
@@ -313,7 +452,7 @@ class HypixelCommand {
 							'%3$s',
 							'欲查询其空岛生存信息, 请使用此命令:',
 							'/hyp %4$s sb <分类> [存档名/序号]',
-							'"分类" 可以是下列之一:',
+							'目前支持的 "分类" 可以是下列之一:',
 							'- skills, skill, sk, s',
 							'- auctions, auction, au, a'
 						], [
@@ -322,6 +461,17 @@ class HypixelCommand {
 							SpelakoUtils::buildString($placeholder),
 							$p['displayname']
 						]);
+						break;
+					default:
+						return SpelakoUtils::buildString([
+							'未知的分类 "%s".',
+							'目前支持的分类可以是下列之一:',
+							'- skills, skill, sk, s',
+							'- auctions, auction, au, a'
+						], [
+							$args[3]
+						]);
+						
 				}
 			case 'r':
 			case 'recent':
@@ -358,27 +508,51 @@ class HypixelCommand {
 					$p['displayname'],
 				]);
 			default:
+				if(isset($args[2]))
+					return SpelakoUtils::buildString([
+						'用法: %s',
+						'未知的分类 "%s".',
+						'目前支持的 "分类" 可以是下列之一:',
+						'- recent, r',
+						'- guild, g',
+						'- bedwars, bw',
+						'- skywars, sw',
+						'- uhc',
+						'- megawalls, mw',
+						'- blitzsg, bsg, hungergames',
+						'- zombies, zb',
+						'- skyblock, sb',
+						'更多分类正在开发中...'
+				], [
+					self::USAGE,
+					$args[2]
+				]);
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
 				$s = $online ? self::fetchStatus($p['uuid']) : false;
 				$statusAvailable = ($s && $s['online'] == true);
 				return SpelakoUtils::buildString([
-					isset($args[2]) ? '未知的分类, 已跳转至默认分类.' : '',
 					'%1$s 的 Hypixel 信息:',
-					'等级: %2$.3f | 人品: %3$d',
-					'成就点数: %4$d',
-					'最近游玩: %5$s',
-					'首次登录: %6$s',
-					'上次登录: %7$s',
-					$online ? '● 此玩家在线了 %8$s, '.($s ? ($statusAvailable ? '当前在%9$s%10$s%11$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %8$s'
+					'等级: %2$.3f | 人品: %3$s',
+					'成就点数: %4$s | 小游戏胜场: %5$s',
+					'完成任务: %6$s | 完成挑战: %7$s',
+					'获得硬币: %8$s',
+					'最近游玩: %9$s',
+					'首次登录: %10$s',
+					'上次登录: %11$s',
+					$online ? '● 此玩家在线了 %12$s, '.($s ? ($statusAvailable ? '当前在%13$s%14$s%15$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %12$s'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					self::getNetworkLevel($p['networkExp']),
-					$p['karma'],
-					$p['achievementPoints'],
-					self::getGameName($p['mostRecentGameType']),
-					SpelakoUtils::convertTime($p['firstLogin'], timezone_offset: self::TIMEZONE_OFFSET),
-					SpelakoUtils::convertTime($p['lastLogin'], timezone_offset: self::TIMEZONE_OFFSET),
-					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : SpelakoUtils::convertTime($p['lastLogout'], timezone_offset: self::TIMEZONE_OFFSET),
+					number_format($p['karma']),
+					number_format($p['achievementPoints']),
+					number_format($p['achievements']['general_wins']),
+					number_format($p['achievements']['general_quest_master']),
+					number_format($p['achievements']['general_challenger']),
+					number_format($p['achievements']['general_coins']),
+					$p['mostRecentGameType'] != null ? self::getGameName($p['mostRecentGameType']) : '未知',
+					$p['firstLogin'] != null ? SpelakoUtils::convertTime($p['firstLogin'], timezone_offset: self::TIMEZONE_OFFSET) : '未知',
+					$p['lastLogin'] != null ? SpelakoUtils::convertTime($p['lastLogin'], timezone_offset: self::TIMEZONE_OFFSET) : '未知',
+					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : ($p['lastLogout'] != null ? SpelakoUtils::convertTime($p['lastLogout'], timezone_offset: self::TIMEZONE_OFFSET) : '未知'),
 					$statusAvailable ? self::getGameName($s['gameType']) : '',
 					$statusAvailable ? self::getModeName($s['mode']) : '',
 					$statusAvailable ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
@@ -531,6 +705,7 @@ class HypixelCommand {
 			'PIT' => '天坑乱斗',
 			'REPLAY' => '回放系统',
 			'SMP' => 'Hypixel SMP',
+			'MAIN' => '主',
 			default => $typeName
 		};
 		
@@ -569,6 +744,7 @@ class HypixelCommand {
 			'Swashbuckle' => '海盗船',
 			'Treenan' => '参天松树',
 			'Ivory Castle' => '象牙城池',
+			'Cauldron' => '炼药锅',		// 这个好像是万圣节地图还是什么地图来自的（？）也是没有单独的字符串，游戏内挂载的就是炼药锅
 			// Bedwars End
 			
 			// Skywars Start
@@ -643,6 +819,51 @@ class HypixelCommand {
 			'Frost Bound' => '冰霜巨城',
 			'Twisted Grove' => '环合密林',
 			//Skywanrs End
+			
+			// Murder Mystery start
+			'Ancient Tomb' => '古墓',
+			'Towerfall' => '高坠塔',
+			'Transport' => '运输塔',
+			'Archives' => '档案馆',
+			'Hypixel World' => 'Hypixel 游乐园',
+			'Headquarters' => '总部',
+			'Library' => '图书馆',
+			'Gold Rush' => '淘金热',
+			'Cruise Ship' => '游轮',
+			'Hollywood' => '好莱坞',
+			'Archives Top Floor' => '档案馆顶层',
+			'Widow\'s Den' => '寡妇的书房',
+			'Aquarium' => '水族馆',
+			'Snowglobe' => '雪景球',	// 这个没有单独字符串，游戏里面直接挂载了雪景球这个翻译
+			'The Bridge' => '战桥',		// 这个应该是桥梁的，但是因为这个单独字符串被删了，所以挂载的是战桥 QAQ
+			// Murder Mystery End
+			
+			// Duels Start
+			'Arena' => '竞技场',	// 没有单独字符串
+			'Sumo' => '相扑',
+			'Aquatica' => '水生',
+			
+			// 决斗游戏地图名太难找了 www，不翻了
+			
+			// Duels End
+			
+			// Warlords Start
+			'Thornhill' => '生灵之山',
+			'The Rift' => '征召峡谷',
+			'Stormwind' => '风暴之境',
+			'Scorched' => '暗黑圣地',
+			'Ruins' => '遗弃古堡',
+			'Neolithic' => '大漠之丘',
+			'Gorge' => '雪原城池',
+			'Falstad Gate' => '石城之门',
+			'Doriven Basin' => '荒郊盆地',
+			'Death Valley' => '死亡山谷',
+			'Crossfire' => '交火王城',
+			'Black Temple' => '黑岩神寺',
+			'Atherrough Valley' => '神魔之城',
+			'Arches' => '失落山谷',
+			'Arathi' => '远郊乡村',
+			// Warlords End
 			null => '',
 			default => ' '.$mapName.' '
 		};
@@ -688,6 +909,7 @@ class HypixelCommand {
 			'mining_4' => ' Crystal Hollows ',
 			'foraging_1' => '公园',
 			'dungeon_hub' => '地牢大厅',
+			'dungeon' => '地牢',
 			// Skyblock End
 
 			// Skywars Start
@@ -696,8 +918,8 @@ class HypixelCommand {
 			'solo_insane' => '单挑疯狂模式',
 			'teams_normal' => '双人普通模式',
 			'teams_insane' => '双人疯狂模式',
-			'mega_normal' => ' mega normal ',
-			'mega_doubles' => ' mega doubles ',
+			'mega_normal' => ' 超级普通模式',
+			'mega_doubles' => '超级 Doubles 模式',
 			'solo_insane_tnt_madness' => '单挑疯狂 TNT 模式',
 			'teams_insane_tnt_madness' => '双人疯狂 TNT 模式',
 			'solo rush' => '单挑疾速模式',
@@ -727,7 +949,7 @@ class HypixelCommand {
 			'BEDWARS_FOUR_FOUR_RUSH' => ' 4v4v4v4 疾速模式',
 			'BEDWARS_EIGHT_TWO_ULTIMATE' => '双人超能力模式',
 			'BEDWARS_FOUR_FOUR_ULTIMATE' => ' 4v4v4v4 超能力模式',
-			'BEDWARS_CASTLE' => '40V40城池攻防战模式',
+			'BEDWARS_CASTLE' => '40v40城池攻防战模式',
 			'BEDWARS_TWO_FOUR' => '4V4 模式',
 			'BEDWARS_EIGHT_TWO_VOIDLESS' => '双人无虚空模式',
 			'BEDWARS_FOUR_FOUR_VOIDLESS' => ' 4v4v4v4 无虚空模式',
@@ -747,7 +969,7 @@ class HypixelCommand {
 			'ENDER_SPLEEF' => '末影掘战',
 			'STARWARS' => '星际战争',
 			'THROW_OUT' => '乱棍之战',
-			'CREEPER_ATTACK' => '进击的苦力怕',
+			'DEFENDER' => '进击的苦力怕',	// 这个改了 = =
 			'PARTY_GAMES_1' => '派对游戏',
 			'FARM_HUNT' => '农场躲猫猫',
 			'ZOMBIES_DEAD_END' , 'ZOMBIES_BAD_BLOOD', 'ZOMBIES_ALIEN_ARCADIUM' => '僵尸末日',
@@ -762,7 +984,7 @@ class HypixelCommand {
 
 			// Cops and Crims Start
 			'normal' => '爆破模式',
-			'deatmatch' => '团队死亡竞赛模式',
+			'deathmatch' => '团队死亡竞赛模式',
 			'NORMAL_PARTY' => '挑战模式 - 爆破模式',
 			'DEATHMATCH_PARTY' => '挑战模式 - 团队死亡竞赛模式',
 			// Cops and Crims End
@@ -817,7 +1039,7 @@ class HypixelCommand {
 			'TOWERWARS_TEAM_OF_TWO' => '双人模式',
 			// TowerWars End
 
-			null => '',
+			'PIT', null => '',
 			default => ' '.$modeName.' '
 		};
 	}
