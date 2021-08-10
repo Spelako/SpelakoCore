@@ -10,19 +10,10 @@ class HypixelCommand {
 	const SKYBLOCK_SKILLS = ['taming', 'farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting'];
 	const TIMEZONE_OFFSET = Spelako::CONFIG['timezone_offset'];
 
-	const BOSS1 = ['炸弹僵尸', '史莱姆王', '巨人'];
-	const BOSS1_SOURCE = ['tnt', 'king_slime', 'giant'];
-	const BOSS2 = ['炼狱', '凋零', '长者'];
-	const BOSS2_SOURCE = ['inferno', 'wither', 'the_old_one'];
-	const BOSS3 = ['巢穴之母', 'HIM', '彩虹巨人'];
-	const BOSS3_SOURCE = ['broodmother', 'herobrine', 'giant_rainbow'];
-	const BOSS4 = ['', '', ' | 世界毁灭者击杀：'];
-	const BOSS4_SOURCE = ['null', 'null', 'world_ender'];
-
 	public static function execute(array $args) {
 		if(!isset($args[1])) return SpelakoUtils::buildString([
 			'用法: %s',
-			'目前支持的 "分类" 可以是下列之一:',
+			'目前支持的分类可以是下列之一:',
 			'- recent, r',
 			'- guild, g',
 			'- bedwars, bw',
@@ -148,7 +139,7 @@ class HypixelCommand {
 					'four_four_rush', '4v4v4v4_rush' => ['four_four_rush_', '4v4v4v4 疾速模式'],
 					'eight_two_ultimate', 'eight_two_ult', '8_2_ult', 'doubles_ultimate', 'double_ult' => ['eight_two_ultimate_', '双人超能力模式'],
 					'four_four_ultimate', 'four_four_ult','4_4_ult', '4v4v4v4_ultimate', '4v4v4v4_ult' => ['four_four_ultimate_', ' 4v4v4v4 超能力模式'],
-					'castle' => ['castle_', '40v40城池攻防战模式'],
+					'castle' => ['castle_', '40v40 城池攻防战模式'],
 					'eight_two_voidless', 'eight_two_void', '8_2_void', 'doubles_voidless', 'double_void' => ['eight_two_voidless_', '双人无虚空模式'],
 					'four_four_voidless', 'four_four_void','4_4_void', '4v4v4v4_voidless', '4v4v4v4_void' => ['four_four_voidless_', ' 4v4v4v4 无虚空模式'],
 					'eight_two_armed', '8_2_armed', 'doubles_armed' => ['eight_two_armed_', '双人枪械模式'],
@@ -156,29 +147,27 @@ class HypixelCommand {
 					'eight_two_lucky', '8_2_lucky', 'doubles_lucky', 'duo_lucky' => ['eight_two_lucky_', '双人幸运方块模式'],
 					'four_four_lucky', '4_4_lucky', '4v4v4v4_lucky' => ['four_four_lucky_', ' 4v4v4v4 幸运方块模式'],
 					null => ['', '全局'],
-					default => ['ERROR', '']
+					default => 'ERROR'
 				};
-				if($mode[0] == 'ERROR') return SpelakoUtils::buildString([
-						'未知的模式 "%s".',
-						'目前支持的模式可以是下列之一:',
-						'- eight_one, 8_1, solo',
-						'- eight_two, 8_2, doubles',
-						'- four_three, 4_3, 3v3v3v3',
-						'- four_four, 4_4, 4v4v4v4',
-						'- two_four, 2_4,  4v4',
-						'- eight_two_rush, 8_4_rush, doubles_rush',
-						'- four_four_rush, 4v4v4v4_rush',
-						'- eight_two_ultimate, eight_two_ult, 8_2_ult, doubles_ultimate, doubles_ult',
-						'- four_four_ultimate, four_four_ult, 4_4_ult, 4v4v4v4_ultimate, 4v4v4v4_ult',
-						'- castle',
-						'- eight_two_voidless, eight_two_void, 8_2_void, doubles_voidless, double_void',
-						'- four_four_voidless, four_four_void, 4_4_void, 4v4v4v4_voidless, 4v4v4v4_void',
-						'- eight_two_armed, 8_2_armed, doubles_armed',
-						'- four_four_armed, 4_4_armed, 4v4v4v4_armed',
-						'- eight_two_lucky, 8_2_lucky, doubles_lucky',
-						'- four_four_lucky, 4_4_lucky, 4v4v4v4_lucky'
-				], [
-					$args[3]
+				if($mode == 'ERROR') return SpelakoUtils::buildString([
+					'未知的模式.',
+					'目前支持的模式可以是下列之一:',
+					'- eight_one, 8_1, solo',
+					'- eight_two, 8_2, doubles',
+					'- four_three, 4_3, 3v3v3v3',
+					'- four_four, 4_4, 4v4v4v4',
+					'- two_four, 2_4,  4v4',
+					'- eight_two_rush, 8_4_rush, doubles_rush',
+					'- four_four_rush, 4v4v4v4_rush',
+					'- eight_two_ultimate, eight_two_ult, 8_2_ult, doubles_ultimate, doubles_ult',
+					'- four_four_ultimate, four_four_ult, 4_4_ult, 4v4v4v4_ultimate, 4v4v4v4_ult',
+					'- castle',
+					'- eight_two_voidless, eight_two_void, 8_2_void, doubles_voidless, double_void',
+					'- four_four_voidless, four_four_void, 4_4_void, 4v4v4v4_voidless, 4v4v4v4_void',
+					'- eight_two_armed, 8_2_armed, doubles_armed',
+					'- four_four_armed, 4_4_armed, 4v4v4v4_armed',
+					'- eight_two_lucky, 8_2_lucky, doubles_lucky',
+					'- four_four_lucky, 4_4_lucky, 4v4v4v4_lucky'
 				]);
 				return SpelakoUtils::buildString([
 					'%1$s 的起床战争%2$s统计信息:',
@@ -209,51 +198,79 @@ class HypixelCommand {
 				]);
 			case 'zombies':
 			case 'zb':
-				
-				$map = match($args[3]) { // [keySuffix, displayName]
-					'deadend', 'de' => ['_deadend', '穷途末路', 0],
-					'badblood', 'bb' => ['_badblood', '坏血之宫', 1],
-					'alienarcadium', 'aa' => ['_alienarcadium', '外星游乐园', 2],
-					null => ['', '全部'],
-					default => ['ERROR', '']
+				$map = match($args[3]) {
+					'deadend', 'de' => [
+						'mapIndex' => 0,
+						'keySuffix' => '_deadend',
+						'displayName' => '穷途末路',
+						'bossKeys' => ['tnt', 'inferno', 'broodmother'],
+						'bossDisplayNames' => ['炸弹僵尸', '炼狱', '巢穴之母']
+					],
+					'badblood', 'bb' => [
+						'mapIndex' => 1,
+						'keySuffix' => '_badblood',
+						'displayName' => '坏血之宫',
+						'bossKeys' => ['king_slime', 'wither', 'herobrine'],
+						'bossDisplayNames' => ['史莱姆王', '凋零', 'HIM']
+					],
+					'alienarcadium', 'aa' => [
+						'mapIndex' => 2,
+						'keySuffix' => '_alienarcadium',
+						'displayName' => '外星游乐园',
+						'bossKeys' => ['giant', 'the_old_one', 'giant_rainbow'], // No need to store the 4th boss here at this map
+						'bossDisplayNames' => ['巨人', '长者', '彩虹巨人']
+					],
+					null => [
+						'keySuffix' => '',
+						'displayName' => '全部'
+					],
+					default => 'ERROR'
 				};
-				if($map[0] == 'ERROR') return SpelakoUtils::buildString([
-						'未知的地图 "%s".',
-						'目前支持的地图可以是下列之一:',
-						'- deadend, de',
-						'- badblood, bb',
-						'- alienarcadium, aa',
-				], [
-					$args[3]
+				if($map == 'ERROR') return SpelakoUtils::buildString([
+					'未知的地图.',
+					'目前支持的地图可以是下列之一:',
+					'- deadend, de',
+					'- badblood, bb',
+					'- alienarcadium, aa',
 				]);
-				$difficulty = match($args[4]) { // [keySuffix, displayName]
-					'normal', 'norm' => ['_normal', '普通难度'],
-					'hard' => ['_hard', '困难难度'],
-					'rip' => ['_rip', '安息难度'],
-					null => ['', '全局'],
-					default => ['ERROR', '']
+				$difficulty = match($args[4]) {
+					'normal', 'norm' => [
+						'keySuffix' => '_normal',
+						'displayName' => '普通难度'
+					],
+					'hard' => [
+						'keySuffix' => '_hard',
+						'displayName' => '困难难度'
+					],
+					'rip' => [
+						'keySuffix' => '_rip',
+						'displayName' => '安息难度'
+					],
+					null => [
+						'keySuffix' => '',
+						'displayName' => '全局'
+					],
+					default => 'ERROR'
 				};
-				if($difficulty[0] == 'ERROR') return SpelakoUtils::buildString([
-						'未知的难度 "%s".',
-						'目前支持的难度可以是下列之一:',
-						'- normal, norm',
-						'- hard',
-						'- rip',
-				], [
-					$args[3]
+				if($difficulty == 'ERROR') return SpelakoUtils::buildString([
+					'未知的难度.',
+					'目前支持的难度可以是下列之一:',
+					'- normal, norm',
+					'- hard',
+					'- rip',
 				]);
-				if ($map[2]==2) $difficulty = ['_normal', ''];
+				if ($map['mapIndex'] == 2) $difficulty = ['_normal', ''];
 				return SpelakoUtils::buildString([
 					'%1$s 的僵尸末日%2$s地图%3$s统计信息:',
 					'生存总回合数: %4$s | 胜场: %5$s | 最佳回合: %6$s',
 					'僵尸击杀数: %7$s | 复活玩家数: %8$s | 开门数: %9$s',
 					'窗户修复数: %10$s | 被击倒次数: %11$s | 死亡数: %12$s',
-					$difficulty[0] != null && $map != null ? '最快完成 10 回合：%13$s' :'',
-					$difficulty[0] != null && $map != null ? '最快完成 20 回合：%14$s' :'',
-					$difficulty[0] != null && $map != null? '最快通关：%15$s' :'',
-					$map[0] == null ? '射击：%16$s | 命中: %17$s | 爆头: %18$s' :( $difficulty[0] == null || $map[2] == 2 ? '%19$s击杀：%20$s | %21$s击杀：%22$s' :''),
-					$map[0] == null ? '命中率：%23$.1f%% | 爆头率 %24$.1f%%' :( $difficulty[0] == null || $map[2] == 2 ? '%25$s击杀：%26$s%27$s%28$s' : ''),
-					'此命令详细用法可在此处查看: %29$s/#help'
+					$difficulty['keySuffix'] ? '最快完成 10 回合: %13$s' : '', // This shows only when map and difficulty are set
+					$difficulty['keySuffix'] ? '最快完成 20 回合: %14$s' : '',
+					$difficulty['keySuffix'] ? '最快通关: %15$s' : '',
+					!$map['keySuffix'] ? '射击: %16$s | 命中: %17$s | 爆头: %18$s' : ($map['mapIndex'] == 2 || !$difficulty['keySuffix'] ? '%19$s击杀: %20$s | %21$s击杀: %22$s' : ''),
+					!$map['keySuffix'] ? '命中率: %23$.1f%% | 爆头率 %24$.1f%%' : (!$difficulty['keySuffix'] ? '%25$s击杀: %26$s'.($map['mapIndex'] == 2 ? ' | 世界毁灭者击杀: %27$s' : '') : ''),
+					'此命令详细用法可在此处查看: %28$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					$map[1],
@@ -273,19 +290,17 @@ class HypixelCommand {
 					number_format($p['stats']['Arcade']['bullets_shot_zombies']),
 					number_format($p['stats']['Arcade']['bullets_hit_zombies']),
 					number_format($p['stats']['Arcade']['headshots_zombies']),
-					self::BOSS1[$map[2]],
-					number_format($p['stats']['Arcade'][self::BOSS1_SOURCE[$map[2]].'_zombie_kills_zombies']),
-					self::BOSS2[$map[2]],
-					number_format($p['stats']['Arcade'][self::BOSS2_SOURCE[$map[2]].'_zombie_kills_zombies']),
-					100*SpelakoUtils::div($p['stats']['Arcade']['bullets_hit_zombies'], $p['stats']['Arcade']['bullets_shot_zombies']),
-					100*SpelakoUtils::div($p['stats']['Arcade']['headshots_zombies'], $p['stats']['Arcade']['bullets_hit_zombies']),
-					self::BOSS3[$map[2]],
-					number_format($p['stats']['Arcade'][self::BOSS3_SOURCE[$map[2]].'_zombie_kills_zombies']),
-					self::BOSS4[$map[2]],
-					$map[2] == 2 ? number_format($p['stats']['Arcade'][self::BOSS4_SOURCE[$map[2]].'_zombie_kills_zombies']) : '',
+					$map['bossDisplayNames'][0],
+					number_format($p['stats']['Arcade'][$map['bossKeys'][0].'_zombie_kills_zombies']),
+					$map['bossDisplayNames'][1],
+					number_format($p['stats']['Arcade'][$map['bossKeys'][1].'_zombie_kills_zombies']),
+					100 * SpelakoUtils::div($p['stats']['Arcade']['bullets_hit_zombies'], $p['stats']['Arcade']['bullets_shot_zombies']),
+					100 * SpelakoUtils::div($p['stats']['Arcade']['headshots_zombies'], $p['stats']['Arcade']['bullets_hit_zombies']),
+					$map['bossDisplayNames'][2],
+					number_format($p['stats']['Arcade'][$map['bossKeys'][2].'_zombie_kills_zombies']),
+					$map['mapIndex'] == 2 ? number_format($p['stats']['Arcade']['world_ender_zombie_kills_zombies']) : '',
 					Spelako::INFO['link']
 				]);
-				
 			case 'skyblock':
 			case 'sb':
 				$profiles = $p['stats']['SkyBlock']['profiles'];
@@ -452,7 +467,7 @@ class HypixelCommand {
 							'%3$s',
 							'欲查询其空岛生存信息, 请使用此命令:',
 							'/hyp %4$s sb <分类> [存档名/序号]',
-							'目前支持的 "分类" 可以是下列之一:',
+							'目前支持的分类可以是下列之一:',
 							'- skills, skill, sk, s',
 							'- auctions, auction, au, a'
 						], [
@@ -464,12 +479,10 @@ class HypixelCommand {
 						break;
 					default:
 						return SpelakoUtils::buildString([
-							'未知的分类 "%s".',
+							'未知的分类.',
 							'目前支持的分类可以是下列之一:',
 							'- skills, skill, sk, s',
 							'- auctions, auction, au, a'
-						], [
-							$args[3]
 						]);
 						
 				}
@@ -499,7 +512,8 @@ class HypixelCommand {
 				return SpelakoUtils::buildString([
 					'%1$s 的最近游玩的游戏:',
 					'%2$s',
-					'当前展示 %3$d/%4$d 页，使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.'
+					'当前展示 %3$d/%4$d 页.',
+					'使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					SpelakoUtils::buildString($placeholder),
@@ -508,24 +522,22 @@ class HypixelCommand {
 					$p['displayname'],
 				]);
 			default:
-				if(isset($args[2]))
-					return SpelakoUtils::buildString([
-						'用法: %s',
-						'未知的分类 "%s".',
-						'目前支持的 "分类" 可以是下列之一:',
-						'- recent, r',
-						'- guild, g',
-						'- bedwars, bw',
-						'- skywars, sw',
-						'- uhc',
-						'- megawalls, mw',
-						'- blitzsg, bsg, hungergames',
-						'- zombies, zb',
-						'- skyblock, sb',
-						'更多分类正在开发中...'
+				if(isset($args[2])) return SpelakoUtils::buildString([
+					'未知的分类.',
+					'用法: %s',
+					'目前支持的分类可以是下列之一:',
+					'- recent, r',
+					'- guild, g',
+					'- bedwars, bw',
+					'- skywars, sw',
+					'- uhc',
+					'- megawalls, mw',
+					'- blitzsg, bsg, hungergames',
+					'- zombies, zb',
+					'- skyblock, sb',
+					'更多分类正在开发中...'
 				], [
-					self::USAGE,
-					$args[2]
+					self::USAGE
 				]);
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
 				$s = $online ? self::fetchStatus($p['uuid']) : false;
@@ -591,7 +603,7 @@ class HypixelCommand {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
 		if($src) {
 			if(($result = json_decode($src, true)['success']) == null) 	return false;
-			return json_decode($src, true)['session'];
+			return $result['session'];
 		}
 		return false;
 	}
@@ -1044,7 +1056,7 @@ class HypixelCommand {
 		};
 	}
 	
-	// Clears the Minecraft formatting string of a file
+	// Clears the Minecraft formatting string of a string
 	private static function getPlainString($formattedStr) {
 		$plainStr = str_replace(
 			array('§0', '§1', '§2', '§3', '§4', '§5', '§6', '§7', '§8', '§9', '§a', '§b', '§c', '§d', '§e', '§f', '§k', '§l', '§m', '§n', '§o', '§r')

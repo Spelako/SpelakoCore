@@ -91,7 +91,7 @@ class SyuuCommand {
 	private static function fetchPlayerStats($player) {
 		if(strlen($player) > 16) return false;
 		$src = SpelakoUtils::getURL(self::WEB_BASE_URL.'/user/'.$player, cacheExpiration: 300);
-		if(!$src) return 'ERROR_ERQUEST_FAILED';
+		if(!$src) return 'ERROR_REQUEST_FAILED';
 		$regex = '#<td class="text-left">(.+)</td>\n<td class="text-left">(.+)<a /></td>\n<td class="text-left">(.+)<a /></td>\n<td class="text-left">(.+)<a /></td>#';
 		preg_match_all($regex, $src, $matches);
 		$stats = array();
