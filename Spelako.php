@@ -11,8 +11,8 @@ class Spelako {
 	];
 
 	const INFO = [
-		'version' => '2.2.0',
-		'last_updated' => '2021/8/9',
+		'version' => '2.2.1',
+		'last_updated' => '2021/8/12',
 		'dev' => 'Peaksol',
 		'link' => 'spelako.github.io'
 	];

@@ -211,7 +211,7 @@ class HypixelCommand {
 						'keySuffix' => '_badblood',
 						'displayName' => '坏血之宫',
 						'bossKeys' => ['king_slime', 'wither', 'herobrine'],
-						'bossDisplayNames' => ['史莱姆王', '凋零', 'HIM']
+						'bossDisplayNames' => ['史莱姆王', '凋零', 'HIM ']
 					],
 					'alienarcadium', 'aa' => [
 						'mapIndex' => 2,
