@@ -51,7 +51,7 @@ class Spelako {
 	}
 
 	public static function execute($command, $user) {
-		$args = explode(' ', strtolower($command));
+		$args = array_values(array_filter(explode(' ', strtolower($command))));
 		$cmd = $args[0];
 		$args[0] = $command;
 		if(isset(self::$commands[$cmd])) {

@@ -129,7 +129,7 @@ class HypixelCommand {
 				]);
 			case 'bedwars':
 			case 'bw':
-				$mode = match($args[3]) { // [keySuffix, displayName]
+				$mode = match($args[3]) { // [keyPrefix, displayName]
 					'eight_one', '8_1', 'solo' => ['eight_one_', '单挑模式'],
 					'eight_two', '8_2', 'doubles', => ['eight_two_', '双人模式'],
 					'four_three', '4_3', '3v3v3v3' => ['four_three_', ' 3v3v3v3 模式'],
@@ -176,7 +176,9 @@ class HypixelCommand {
 					'胜场: %8$s | 败场: %9$s | W/L: %10$.3f',
 					'击杀: %11$s | 死亡: %12$s | K/D: %13$.3f',
 					'终杀: %14$s | 终死: %15$s | FKDR: %16$.3f',
-					'此命令详细用法可在此处查看: %17$s/#help'
+					'铁锭收集: %17$s | 金锭收集: %18$s',
+					'钻石收集: %19$s | 绿宝石收集: %20$s',
+					'此命令详细用法可在此处查看: %21$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					$mode[1],
@@ -194,6 +196,10 @@ class HypixelCommand {
 					number_format($p['stats']['Bedwars'][$mode[0].'final_kills_bedwars']),
 					number_format($p['stats']['Bedwars'][$mode[0].'final_deaths_bedwars']),
 					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'final_kills_bedwars'], $p['stats']['Bedwars'][$mode[0].'final_deaths_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'iron_resources_collected_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'gold_resources_collected_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'diamond_resources_collected_bedwars']),
+					number_format($p['stats']['Bedwars'][$mode[0].'emerald_resources_collected_bedwars']),
 					Spelako::INFO['link']
 				]);
 			case 'zombies':
@@ -233,6 +239,7 @@ class HypixelCommand {
 					'- badblood, bb',
 					'- alienarcadium, aa',
 				]);
+				if($map['mapIndex'] == 2) $args[4] = 'normal';
 				$difficulty = match($args[4]) {
 					'normal', 'norm' => [
 						'keySuffix' => '_normal',
@@ -259,7 +266,6 @@ class HypixelCommand {
 					'- hard',
 					'- rip',
 				]);
-				if ($map['mapIndex'] == 2) $difficulty = ['_normal', ''];
 				return SpelakoUtils::buildString([
 					'%1$s 的僵尸末日%2$s地图%3$s统计信息:',
 					'生存总回合数: %4$s | 胜场: %5$s | 最佳回合: %6$s',
@@ -640,15 +646,13 @@ class HypixelCommand {
 
 	// Gets Skyblock skill level by exp
 	private static function getSkyblockLevel($exp, $runecrafting = false) {
-		if($runecrafting) {
-			$levelingLadder = array(0, 50, 150, 275, 435, 635, 885, 1200, 1600, 2100, 2725, 3510, 4510, 5760, 7325, 9325, 11825, 14950, 18950, 23950, 30200, 38050, 47850, 60100, 75400, 94450);
-		}
-		else {
-			$levelingLadder = array(0, 50, 175, 375, 675, 1175, 1925, 2925, 4425, 6425, 9925, 14925, 22425, 32425, 47425, 67425, 97425, 147425, 222425, 322425, 522425, 822425, 1222425, 1722425, 2322425, 3022425, 3822425, 4722425, 5722425, 6822425, 8022425, 9322425, 10722425, 12222425, 13822425, 15522425, 17322425, 19222425, 21222425, 23322425, 25522425, 27822425, 30222425, 32722425, 35322425, 38072425, 40972425, 44072425, 47472425, 51172425, 55172425);
-		}
-		foreach($levelingLadder as $lv => $required) {
-			if($exp < $required) return ($lv - 1);
-		}
+		if($runecrafting)
+			$levelingLadder = [0, 50, 150, 275, 435, 635, 885, 1200, 1600, 2100, 2725, 3510, 4510, 5760, 7325, 9325, 11825, 14950, 18950, 23950, 30200, 38050, 47850, 60100, 75400, 94450];
+		else
+			$levelingLadder = [0, 50, 175, 375, 675, 1175, 1925, 2925, 4425, 6425, 9925, 14925, 22425, 32425, 47425, 67425, 97425, 147425, 222425, 322425, 522425, 822425, 1222425, 1722425, 2322425, 3022425, 3822425, 4722425, 5722425, 6822425, 8022425, 9322425, 10722425, 12222425, 13822425, 15522425, 17322425, 19222425, 21222425, 23322425, 25522425, 27822425, 30222425, 32722425, 35322425, 38072425, 40972425, 44072425, 47472425, 51172425, 55172425, 59472425, 64072425, 68972425, 74172425, 79672425, 85472425, 91572425, 91972425, 104672425, 111672425];
+		foreach($levelingLadder as $curlevel => $required)
+			if($exp > $required) $level = $curlevel;
+		return $level;
 	}
 
 	// Searches player[] for possible rank
@@ -679,8 +683,8 @@ class HypixelCommand {
 		for ($i = 0; ; $i++) {
 			$need = $i >= sizeof($guildLevelTables) ? $guildLevelTables[sizeof($guildLevelTables) - 1] : $guildLevelTables[$i];
 			$exp -= $need;
-			if ($exp < 0) return $level + 1 + $exp/$need;
-			else $level++;
+			if ($exp < 0) return $level + 1 + $exp / $need;
+			else $level ++;
 		}
 		return -1;
 	}
