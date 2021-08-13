@@ -275,7 +275,7 @@ class HypixelCommand {
 					$difficulty['keySuffix'] ? '最快完成 20 回合: %14$s' : '',
 					$difficulty['keySuffix'] ? '最快通关: %15$s' : '',
 					!$map['keySuffix'] ? '射击: %16$s | 命中: %17$s | 爆头: %18$s' : ($map['mapIndex'] == 2 || !$difficulty['keySuffix'] ? '%19$s击杀: %20$s | %21$s击杀: %22$s' : ''),
-					!$map['keySuffix'] ? '命中率: %23$.1f%% | 爆头率 %24$.1f%%' : (!$difficulty['keySuffix'] ? '%25$s击杀: %26$s'.($map['mapIndex'] == 2 ? ' | 世界毁灭者击杀: %27$s' : '') : ''),
+					!$map['keySuffix'] ? '命中率: %23$.1f%% | 爆头率 %24$.1f%%' : ($map['mapIndex'] == 2 || !$difficulty['keySuffix'] ? '%25$s击杀: %26$s'.($map['mapIndex'] == 2 ? ' | 世界毁灭者击杀: %27$s' : '') : ''),
 					'此命令详细用法可在此处查看: %28$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
@@ -459,7 +459,7 @@ class HypixelCommand {
 							$skillLevels['runecrafting']
 						]);
 						break;
-					null:
+					case: null:
 						$placeholder = array();
 						foreach(array_keys($profiles) as $k => $v) {
 							array_push($placeholder, sprintf(
@@ -484,6 +484,7 @@ class HypixelCommand {
 						]);
 						break;
 					default:
+						printf("%d %d %d", $args[3], null,$args[3]==null);
 						return SpelakoUtils::buildString([
 							'未知的分类.',
 							'目前支持的分类可以是下列之一:',
