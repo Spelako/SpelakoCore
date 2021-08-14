@@ -459,7 +459,7 @@ class HypixelCommand {
 							$skillLevels['runecrafting']
 						]);
 						break;
-					case: null:
+					case null:
 						$placeholder = array();
 						foreach(array_keys($profiles) as $k => $v) {
 							array_push($placeholder, sprintf(
