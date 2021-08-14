@@ -458,7 +458,6 @@ class HypixelCommand {
 							$skillLevels['carpentry'],
 							$skillLevels['runecrafting']
 						]);
-						break;
 					case null:
 						$placeholder = array();
 						foreach(array_keys($profiles) as $k => $v) {
@@ -482,9 +481,7 @@ class HypixelCommand {
 							SpelakoUtils::buildString($placeholder),
 							$p['displayname']
 						]);
-						break;
 					default:
-						printf("%d %d %d", $args[3], null,$args[3]==null);
 						return SpelakoUtils::buildString([
 							'未知的分类.',
 							'目前支持的分类可以是下列之一:',
@@ -609,8 +606,7 @@ class HypixelCommand {
 	private static function fetchStatus($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
 		if($src) {
-			if(($result = json_decode($src, true)['success']) == null) 	return false;
-			return $result['session'];
+			return json_decode($src, true)['session'];
 		}
 		return false;
 	}
