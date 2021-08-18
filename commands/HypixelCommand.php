@@ -408,7 +408,7 @@ class HypixelCommand {
 							return SpelakoUtils::buildString([
 								'无法找到玩家 %1$s 的此空岛生存存档.',
 								'此玩家的 %2$d 个空岛生存存档 (序号 - 存档名):',
-									'%3$s',
+								'%3$s',
 							], [
 								$p['displayname'],
 								count($profiles),
