@@ -326,12 +326,11 @@ class HypixelCommand {
 								));
 							}
 							return SpelakoUtils::buildString([
-								'无法找到玩家 %1$s 的空岛生存 %2$s 存档.',
-								'此玩家的 %3$d 个空岛生存存档 (序号 - 存档名):',
-									'%4$s',
+								'无法找到玩家 %1$s 的此空岛生存存档.',
+								'此玩家的 %2$d 个空岛生存存档 (序号 - 存档名):',
+								'%3$s',
 							], [
 								$p['displayname'],
-								$args[4],
 								count($profiles),
 								SpelakoUtils::buildString($placeholder),
 							]);
@@ -407,12 +406,11 @@ class HypixelCommand {
 								));
 							}
 							return SpelakoUtils::buildString([
-								'无法找到玩家 %1$s 的空岛生存 %2$s 存档.',
-								'此玩家的 %3$d 个空岛生存存档 (序号 - 存档名):',
-									'%4$s',
+								'无法找到玩家 %1$s 的此空岛生存存档.',
+								'此玩家的 %2$d 个空岛生存存档 (序号 - 存档名):',
+									'%3$s',
 							], [
 								$p['displayname'],
-								$args[4],
 								count($profiles),
 								SpelakoUtils::buildString($placeholder),
 							]);
