@@ -9,6 +9,11 @@ class HypixelCommand {
 	const API_BASE_URL = 'https://api.hypixel.net';
 	const SKYBLOCK_SKILLS = ['taming', 'farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting'];
 	const TIMEZONE_OFFSET = Spelako::CONFIG['timezone_offset'];
+	const PARKOUR_LOBBY_CODE = ['mainLobby2017', 'Bedwars', 'Skywars', 'SkywarsAug2017', 'ArcadeGames', 'MurderMystery', 'TNT', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'MegaWalls', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
+	const PARKOUR_LOBBY_ATTRIB = ['main', 'bw', 'sw', 'sw2017.8', 'arcade', 'mm', 'tnt', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'mw', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
+	const PARKOUR_LOBBY_NAME = ['主大厅 2017', '起床战争', '空岛战争', '空岛战争 2017.8', '街机游戏', '密室杀手', '掘战游戏', '极限生存冠军', '速战极限生存', '游戏实验室', '建筑大师', '家园世界', 'True PVP Parkour', '超级战墙', '闪电饥饿游戏' ,'战争领主', '星碎英雄', '警匪大战' ,'决斗游戏', '经典游戏', '空岛竞技场', '竞赛殿堂'];
+
+
 
 	public static function execute(array $args) {
 		if(!isset($args[1])) return SpelakoUtils::buildString([
@@ -23,6 +28,7 @@ class HypixelCommand {
 			'- blitzsg, bsg, hungergames',
 			'- zombies, zb',
 			'- skyblock, sb',
+			'- parkour, p',
 			'更多分类正在开发中...',
 		], [self::USAGE]);
 		$p = self::fetchGeneralStats($args[1]);
@@ -507,8 +513,8 @@ class HypixelCommand {
 						self::getGameName($r[$i]['gameType']),
 						self::getModeName($r[$i]['mode']),
 						($statusMap = self::getMapName($r[$i]['map'])) != '' ? $statusMap.'地图' : '',
-						SpelakoUtils::convertTime($r[$i]['date'], timezone_offset: self::TIMEZONE_OFFSET),
-						$r[$i]['ended'] ? SpelakoUtils::convertTime($r[$i]['ended'], timezone_offset: self::TIMEZONE_OFFSET) : ''
+						SpelakoUtils::convertTime($r[$i]['date'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET),
+						$r[$i]['ended'] ? SpelakoUtils::convertTime($r[$i]['ended'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : ''
 					]));
 				}
 				return SpelakoUtils::buildString([
@@ -523,6 +529,74 @@ class HypixelCommand {
 					$totPages,
 					$p['displayname'],
 				]);
+			case 'p':
+			case 'parkour':
+				$lobby = $args[3];
+				if ($lobby == null || $lobby == ' '){
+					$placeholder = array();
+					for ($i = 0; $i < 22; $i ++) 
+						array_push($placeholder, SpelakoUtils::buildString([
+						'#%1$d. %2$s: %3$s',
+						], [
+							$i+1,
+							self::PARKOUR_LOBBY_NAME[$i],
+							($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未完成'
+						]));
+						//printf("%s %d\n",self::PARKOUR_LOBBY_CODE[$i], $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']);
+					return SpelakoUtils::buildString([
+						'%1$s 的跑酷信息(序号 - 中文名):',
+						'%2$s',
+						'使用 /hyp %3$s p <序号> 来查看包括每个存档点的纪录和总纪录的创立时间的详细信息.'
+					], [
+						self::getNetworkRank($p).$p['displayname'],
+						SpelakoUtils::buildString($placeholder),
+						$p['displayname']
+					]);
+				}
+				else if($lobby >=1 && $lobby <=22) {
+					$lobby--;
+					$placeholder = array();
+					for ($i = 0; $i < 10; $i ++) {
+						$checkPointTime = $p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$lobby]][$i];
+						if ($checkPointTime == null) break;
+						array_push($placeholder, SpelakoUtils::buildString([
+						'#%1$d. %2$s',
+						], [
+							$i+1,
+							SpelakoUtils::convertTime($checkPointTime, false, 'i:s').'.'. sprintf('%03s', $checkPointTime % 1000)
+						]));
+					}
+					return SpelakoUtils::buildString([
+						'%1$s 的%2$s跑酷每个存档点最佳成绩:',
+						'%3$s',
+						'完成跑酷用时: %4$s',
+						$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook'] != null ? '记录创建于: %5$s' : null
+					], [
+						self::getNetworkRank($p).$p['displayname'],
+						self::PARKOUR_LOBBY_NAME[$lobby],
+						SpelakoUtils::buildString($placeholder),
+						($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未完成' ,
+						SpelakoUtils::convertTime($p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']+$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeStart'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET)
+					]);
+				}
+				else
+				{
+					$placeholder = array();
+					for ($i = 0; $i < 22; $i ++) 
+						array_push($placeholder, SpelakoUtils::buildString([
+						'- %1$d. %2$s',
+						], [
+							$i+1,
+							self::PARKOUR_LOBBY_NAME[$i],
+						]));
+					return SpelakoUtils::buildString([
+						'未知的序号:',
+						'目前支持的序号可以为下列之一(序号 - 中文名):',
+						'%1$s',
+					], [
+						SpelakoUtils::buildString($placeholder),
+					]);
+				}
 			default:
 				if(isset($args[2])) return SpelakoUtils::buildString([
 					'未知的分类.',
@@ -564,9 +638,9 @@ class HypixelCommand {
 					number_format($p['achievements']['general_challenger']),
 					number_format($p['achievements']['general_coins']),
 					$p['mostRecentGameType'] != null ? self::getGameName($p['mostRecentGameType']) : '未知',
-					$p['firstLogin'] != null ? SpelakoUtils::convertTime($p['firstLogin'], timezone_offset: self::TIMEZONE_OFFSET) : '未知',
-					$p['lastLogin'] != null ? SpelakoUtils::convertTime($p['lastLogin'], timezone_offset: self::TIMEZONE_OFFSET) : '未知',
-					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : ($p['lastLogout'] != null ? SpelakoUtils::convertTime($p['lastLogout'], timezone_offset: self::TIMEZONE_OFFSET) : '未知'),
+					$p['firstLogin'] != null ? SpelakoUtils::convertTime($p['firstLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知',
+					$p['lastLogin'] != null ? SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知',
+					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : ($p['lastLogout'] != null ? SpelakoUtils::convertTime($p['lastLogout'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知'),
 					$statusAvailable ? self::getGameName($s['gameType']) : '',
 					$statusAvailable ? self::getModeName($s['mode']) : '',
 					$statusAvailable ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
