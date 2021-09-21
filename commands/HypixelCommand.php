@@ -9,6 +9,11 @@ class HypixelCommand {
 	const API_BASE_URL = 'https://api.hypixel.net';
 	const SKYBLOCK_SKILLS = ['taming', 'farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting'];
 	const TIMEZONE_OFFSET = Spelako::CONFIG['timezone_offset'];
+	const PARKOUR_LOBBY_CODE = ['mainLobby2017', 'Bedwars', 'Skywars', 'SkywarsAug2017', 'ArcadeGames', 'MurderMystery', 'TNT', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'MegaWalls', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
+	const PARKOUR_LOBBY_ATTRIB = ['main', 'bw', 'sw', 'sw2017.8', 'arcade', 'mm', 'tnt', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'mw', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
+	const PARKOUR_LOBBY_NAME = ['主大厅 2017', '起床战争', '空岛战争', '空岛战争 2017.8', '街机游戏', '密室杀手', '掘战游戏', '极限生存冠军', '速战极限生存', '游戏实验室', '建筑大师', '家园世界', 'True PVP Parkour', '超级战墙', '闪电饥饿游戏' ,'战争领主', '星碎英雄', '警匪大战' ,'决斗游戏', '经典游戏', '空岛竞技场', '竞赛殿堂'];
+	const PARKOUR_LOBBY_CHECKPOINT = [2,3,-1,3,6,3,3,2,1,4,3,7,-1,3,0,2,-1,4,3,2,-1,3];
+
 
 	public static function execute(array $args) {
 		if(!isset($args[1])) return SpelakoUtils::buildString([
@@ -18,11 +23,13 @@ class HypixelCommand {
 			'- guild, g',
 			'- bedwars, bw',
 			'- skywars, sw',
+			'- murdermystery, mm',
 			'- uhc',
 			'- megawalls, mw',
 			'- blitzsg, bsg, hungergames',
 			'- zombies, zb',
 			'- skyblock, sb',
+			'- parkour, p',
 			'更多分类正在开发中...',
 		], [self::USAGE]);
 		$p = self::fetchGeneralStats($args[1]);
@@ -202,6 +209,119 @@ class HypixelCommand {
 					number_format($p['stats']['Bedwars'][$mode[0].'emerald_resources_collected_bedwars']),
 					Spelako::INFO['link']
 				]);
+			case 'murdermystery':
+			case 'mm':
+				if ($args[3][0] >= 1 && $args[3][0] <= 4 && $args[3][1] == null) $modeCode = $args[3];
+				else if (ord($args[3][0]) >= ord('a') && ord($args[3][0]) <= ord('u') && $args[3][1] == null) $mapCode = ord($args[3]);
+				else if ($args[3][0] >=1 && $args[3][0] <=4 && ord($args[3][1]) >= ord('a') && ord($args[3][1]) <= ord('u') && $args[3][2] == null) {
+					// printf("???????????");
+					$modeCode = $args[3][0];
+					$mapCode = ord($args[3][1]);
+				}
+				else if ($args[3] == null)  {
+					$modeCode = null;
+					$mapCode = null;
+				}
+				else  {
+					$modeCode = 'ERROR';
+					$mapCode = 'ERROR';
+				}
+				if($modeCode == 'ERROR' || $mapCode == 'ERROR') {
+					return SpelakoUtils::buildString([
+					'未知的格式.',
+					'正确格式 /hyp %1$s mm [模式序号 / 地图序号 / 模式+地图序号]',
+					'模式序号可以是下列之一 (序号 - 模式名):',
+					'#1. 经典模式',
+					'#2. 双倍模式',
+					'#3. 刺客模式',
+					'#4. 感染模式',
+					'地图序号和模式+地图序号详细用法可在此处查看：',
+					'%2$s/#help',
+				],[
+					$p['displayname'],
+					Spelako::INFO['link']
+				]);
+				}
+				$mode = match($modeCode) { // [keyPrefix, displayName]
+					'1' => ['_MURDER_CLASSIC', 'MURDER_CLASSIC'],
+					'2' => ['_MURDER_DOUBLE_UP','MURDER_DOUBLE_UP'],
+					'3' => ['_MURDER_ASSASSINS','MURDER_ASSASSINS'],
+					'4' => ['_MURDER_INFECTION','MURDER_INFECTION'],
+					null => ['', 'all'],
+					default => 'ERROR'
+				};
+				
+				$map = match($mapCode) { // [keyPrefix, displayName]
+					ord('a') => ['_ancient_tomb', 'Ancient Tomb'],
+					ord('b') => ['_aquarium', 'Aquarium'],
+					ord('c') => ['_archives', 'Archives'],
+					ord('d') => ['_archives_top_floor', 'Archives Top Floor'],
+					ord('e') => ['_cruise_ship', 'Cruise Ship'],
+					ord('f') => ['_darkfall', 'Darkfall'],
+					ord('g') => ['_gold_rush', 'Gold Rush'],
+					ord('h') => ['_headquarters', 'Headquarters'],
+					ord('i') => ['_hollywood', 'Hollywood'],
+					ord('j') => ['_hypixel_world', 'Hypixel World'],
+					ord('k') => ['_library', 'Library'],
+					ord('l') => ['_mountain', 'Mountain'],
+					ord('m') => ['_san_peratico_v2', 'San Peratico v3'],
+					ord('n') => ['_skyway_pier', 'Skyway Pier'],
+					ord('o') => ['_snowfall', 'Snowfall'],
+					ord('p') => ['_snowglobe', 'Snowglobe'],
+					ord('q') => ['_subway', 'Subway'],
+					ord('r') => ['_towerfall', 'Towerfall'],
+					ord('s') => ['_transport', 'Transport'],
+					ord('t') => ['_vilia', 'Vilia'],
+					ord('u') => ['_widow\'s_den', 'Widow\'s den'],
+
+					null => ['', 'all'],
+					default => 'ERROR'
+				};
+				
+				return SpelakoUtils::buildString([
+					'%1$s 的密室杀手%25$s地图%2$s统计信息:',
+					$mode[0] == '' ? '硬币: %3$s 当前 %4$s%% 杀手, %5$s%% 侦探' : '',
+					'胜场: %6$s | 胜率: %7$.3lf%% | 金锭收集: %8$s',
+					($mode[0] != '_MURDER_ASSASSINS' && $mode[0] != '_MURDER_INFECTION') ? '侦探胜场: %12$s | 杀手胜场: %13$s' : '',
+					'死亡: %16$s',
+					$mode[0] != '_MURDER_INFECTION' ? '击杀: %15$s | 陷阱击杀: %20$s ' : '',
+					$mode[0] != '_MURDER_INFECTION' ? '近战击杀: %17$s | 飞刀击杀: %18$s | 弓箭击杀: %19$s' : '',
+					($mode[0] != '_MURDER_ASSASSINS' && $mode[0] != '_MURDER_INFECTION') ? '作为杀手击杀: %14$s | 英雄: %21$s' : '',
+					($mode[0] != '_MURDER_ASSASSINS' && $mode[0] != '_MURDER_INFECTION') ? '侦探最快胜利: %22$ss | 杀手最快胜利: %23$ss' : '',
+					($mode[0] == '' || $mode[0] == '_MURDER_INFECTION') ? '作为感染者击杀: %26$s | 作为幸存者击杀: %27$s' : '',
+					($mode[0] == '' || $mode[0] == '_MURDER_INFECTION') ? '幸存者总存活: %9$s | 幸存者最久存活: %10$ss' : '',
+					'此命令详细用法可在此处查看: %24$s/#help'
+				], [
+					self::getNetworkRank($p).$p['displayname'],
+					self::getModeName($mode[1]),
+					number_format($p['stats']['MurderMystery']['coins']),
+					number_format($p['stats']['MurderMystery']['murderer_chance']),
+					number_format($p['stats']['MurderMystery']['detective_chance']),
+					number_format($p['stats']['MurderMystery']['wins'.$map[0].$mode[0]]),
+					(SpelakoUtils::div($p['stats']['MurderMystery']['wins'.$map[0].$mode[0]]*100, $p['stats']['MurderMystery']['games'.$map[0].$mode[0]])),
+					number_format($p['stats']['MurderMystery']['coins_pickedup'.$map[0].$mode[0]]),
+					($survived_time = $p['stats']['MurderMystery']['total_time_survived_seconds'.$map[0].$mode[0]]*1000) != 0 ? SpelakoUtils::convertTime ($survived_time, false, 'i:s') : '00:00',
+					number_format($p['stats']['MurderMystery']['longest_time_as_survivor_seconds'.$map[0].$mode[0]]),
+					null, //number_format($p['stats']['MurderMystery']['coins_pickedup'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['detective_wins'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['murderer_wins'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['kills_as_murderer'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['kills'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['deaths'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['knife_kills'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['thrown_knife_kills'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['bow_kills'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['trap_kills'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['was_hero'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['quickest_detective_win_time_seconds'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['quickest_murderer_win_time_seconds'.$map[0].$mode[0]]),
+					Spelako::INFO['link'],
+					self::getMapName($map[1]),
+					number_format($p['stats']['MurderMystery']['kills_as_infected'.$map[0].$mode[0]]),
+					number_format($p['stats']['MurderMystery']['kills_as_survivor'.$map[0].$mode[0]])
+				]);
+				//printf("%s %s %s %d %d | %d %d %d %d", $args[3], $map[0], $mode[0], $mapCode, $modeCode, $args[3][0] >=1 , $args[3][0] <=4 , ord($args[3][1]) >= ord('a') , ord($args[3][1]) <= ord('u'));
+				//return;
 			case 'zombies':
 			case 'zb':
 				$map = match($args[3]) {
@@ -507,8 +627,8 @@ class HypixelCommand {
 						self::getGameName($r[$i]['gameType']),
 						self::getModeName($r[$i]['mode']),
 						($statusMap = self::getMapName($r[$i]['map'])) != '' ? $statusMap.'地图' : '',
-						SpelakoUtils::convertTime($r[$i]['date'], timezone_offset: self::TIMEZONE_OFFSET),
-						$r[$i]['ended'] ? SpelakoUtils::convertTime($r[$i]['ended'], timezone_offset: self::TIMEZONE_OFFSET) : ''
+						SpelakoUtils::convertTime($r[$i]['date'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET),
+						$r[$i]['ended'] ? SpelakoUtils::convertTime($r[$i]['ended'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : ''
 					]));
 				}
 				return SpelakoUtils::buildString([
@@ -523,6 +643,75 @@ class HypixelCommand {
 					$totPages,
 					$p['displayname'],
 				]);
+			case 'p':
+			case 'parkour':
+				$lobby = $args[3];
+				if ($lobby == null || $lobby == ' '){
+					$placeholder = array();
+					for ($i = 0; $i < 22; $i ++) {
+						array_push($placeholder, SpelakoUtils::buildString([
+						'#%1$d. %2$s: %3$s',
+						], [
+							$i+1,
+							self::PARKOUR_LOBBY_NAME[$i],
+							($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未' . ($p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$i]][0] != null ? '完全' : '') . '完成'
+						]));
+						// printf("%s %d %d\n",self::PARKOUR_LOBBY_CODE[$i], $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook'],$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']);
+					}
+					return SpelakoUtils::buildString([
+						'%1$s 的跑酷信息(序号 - 中文名):',
+						'%2$s',
+						'使用 /hyp %3$s p <序号> 来查看包括每个存档点的纪录和总纪录的创立时间的详细信息.'
+					], [
+						self::getNetworkRank($p).$p['displayname'],
+						SpelakoUtils::buildString($placeholder),
+						$p['displayname']
+					]);
+				}
+				else if($lobby >=1 && $lobby <=22) {
+					$lobby--;
+					$placeholder = array();
+					for ($i = 0; $i <= self::PARKOUR_LOBBY_CHECKPOINT[$lobby]; $i ++) {
+						$checkPointTime = $p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$lobby]][$i];
+						// if ($checkPointTime == null) break;
+						array_push($placeholder, SpelakoUtils::buildString([
+						'#%1$d. %2$s',
+						], [
+							$i+1,
+							$checkPointTime != null ? SpelakoUtils::convertTime($checkPointTime, false, 'i:s').'.'. sprintf('%03s', $checkPointTime % 1000) : '未完成'
+						]));
+					}
+					return SpelakoUtils::buildString([
+						self::PARKOUR_LOBBY_CHECKPOINT[$lobby] != -1 ? '%1$s 的%2$s跑酷每个存档点最佳记录:':'%1$s 的%2$s跑酷详细信息（该跑酷无存档点）:',
+						'%3$s',
+						'完成跑酷用时: %4$s',
+						$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook'] != null ? '记录创建于: %5$s' : null
+					], [
+						self::getNetworkRank($p).$p['displayname'],
+						self::PARKOUR_LOBBY_NAME[$lobby],
+						SpelakoUtils::buildString($placeholder),
+						($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未完成' ,
+						SpelakoUtils::convertTime($p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']+$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeStart'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET)
+					]);
+				}
+				else
+				{
+					$placeholder = array();
+					for ($i = 0; $i < 22; $i ++) 
+						array_push($placeholder, SpelakoUtils::buildString([
+						'- %1$d. %2$s',
+						], [
+							$i+1,
+							self::PARKOUR_LOBBY_NAME[$i],
+						]));
+					return SpelakoUtils::buildString([
+						'未知的序号:',
+						'目前支持的序号可以为下列之一(序号 - 中文名):',
+						'%1$s',
+					], [
+						SpelakoUtils::buildString($placeholder),
+					]);
+				}
 			default:
 				if(isset($args[2])) return SpelakoUtils::buildString([
 					'未知的分类.',
@@ -532,11 +721,13 @@ class HypixelCommand {
 					'- guild, g',
 					'- bedwars, bw',
 					'- skywars, sw',
+					'- murdermystery, mm',
 					'- uhc',
 					'- megawalls, mw',
 					'- blitzsg, bsg, hungergames',
 					'- zombies, zb',
 					'- skyblock, sb',
+					'- parkour, p',
 					'更多分类正在开发中...'
 				], [
 					self::USAGE
@@ -553,7 +744,8 @@ class HypixelCommand {
 					'最近游玩: %9$s',
 					'首次登录: %10$s',
 					'上次登录: %11$s',
-					$online ? '● 此玩家在线了 %12$s, '.($s ? ($statusAvailable ? '当前在%13$s%14$s%15$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %12$s'
+					($online ? '● 此玩家在线了 %12$s, '.($s ? ($statusAvailable ? '当前在%13$s%14$s%15$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %12$s'),
+					'此命令详细用法可在此处查看: %16$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					self::getNetworkLevel($p['networkExp']),
@@ -564,12 +756,13 @@ class HypixelCommand {
 					number_format($p['achievements']['general_challenger']),
 					number_format($p['achievements']['general_coins']),
 					$p['mostRecentGameType'] != null ? self::getGameName($p['mostRecentGameType']) : '未知',
-					$p['firstLogin'] != null ? SpelakoUtils::convertTime($p['firstLogin'], timezone_offset: self::TIMEZONE_OFFSET) : '未知',
-					$p['lastLogin'] != null ? SpelakoUtils::convertTime($p['lastLogin'], timezone_offset: self::TIMEZONE_OFFSET) : '未知',
-					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : ($p['lastLogout'] != null ? SpelakoUtils::convertTime($p['lastLogout'], timezone_offset: self::TIMEZONE_OFFSET) : '未知'),
+					$p['firstLogin'] != null ? SpelakoUtils::convertTime($p['firstLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知',
+					$p['lastLogin'] != null ? SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知',
+					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : ($p['lastLogout'] != null ? SpelakoUtils::convertTime($p['lastLogout'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知'),
 					$statusAvailable ? self::getGameName($s['gameType']) : '',
 					$statusAvailable ? self::getModeName($s['mode']) : '',
 					$statusAvailable ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
+					Spelako::INFO['link']
 				]);
 		}
 	}
@@ -836,7 +1029,7 @@ class HypixelCommand {
 			'Towerfall' => '高坠塔',
 			'Transport' => '运输塔',
 			'Archives' => '档案馆',
-			'Hypixel World' => 'Hypixel 游乐园',
+			'Hypixel World' => ' Hypixel 游乐园',
 			'Headquarters' => '总部',
 			'Library' => '图书馆',
 			'Gold Rush' => '淘金热',
@@ -846,7 +1039,6 @@ class HypixelCommand {
 			'Widow\'s Den' => '寡妇的书房',
 			'Aquarium' => '水族馆',
 			'Snowglobe' => '雪景球',	// 这个没有单独字符串，游戏里面直接挂载了雪景球这个翻译
-			'The Bridge' => '战桥',		// 这个应该是桥梁的，但是因为这个单独字符串被删了，所以挂载的是战桥 QAQ
 			// Murder Mystery End
 			
 			// Duels Start
@@ -875,6 +1067,8 @@ class HypixelCommand {
 			'Arches' => '失落山谷',
 			'Arathi' => '远郊乡村',
 			// Warlords End
+			
+			'all' => '全部',
 			null => '',
 			default => ' '.$mapName.' '
 		};
@@ -1051,6 +1245,7 @@ class HypixelCommand {
 			// TowerWars End
 
 			'PIT', null => '',
+			'all' => '全局',
 			default => ' '.$modeName.' '
 		};
 	}
