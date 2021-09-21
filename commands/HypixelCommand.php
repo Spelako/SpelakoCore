@@ -745,7 +745,7 @@ class HypixelCommand {
 					'首次登录: %10$s',
 					'上次登录: %11$s',
 					($online ? '● 此玩家在线了 %12$s, '.($s ? ($statusAvailable ? '当前在%13$s%14$s%15$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %12$s'),
-					'此命令详细用法可在此处查看: %21$s/#help'
+					'此命令详细用法可在此处查看: %13$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					self::getNetworkLevel($p['networkExp']),
@@ -762,6 +762,7 @@ class HypixelCommand {
 					$statusAvailable ? self::getGameName($s['gameType']) : '',
 					$statusAvailable ? self::getModeName($s['mode']) : '',
 					$statusAvailable ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
+					Spelako::INFO['link']
 				]);
 		}
 	}
