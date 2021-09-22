@@ -641,9 +641,9 @@ class HypixelCommand {
 					$placeholder = array();
 					for ($i = 0; $i < 22; $i ++) {
 						array_push($placeholder, SpelakoUtils::buildString([
-						'#%1$d. %2$s: %3$s',
+							'%1$d. %2$s: %3$s',
 						], [
-							$i+1,
+							$i + 1,
 							self::PARKOUR_LOBBY_NAME[$i],
 							($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未' . ($p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$i]][0] != null ? '完全' : '') . '完成'
 						]));
