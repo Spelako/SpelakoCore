@@ -1,5 +1,5 @@
 # Spelako
-Spelako 是一个使用命令操作的交互式机器人, 提供 Hypixel 统计信息查询, Minecraft 账户信息等功能. 欲了解 Spelako 的更多信息, 请阅读[文档](https://spelako.github.io/).
+Spelako 是一个使用命令操作的交互式机器人, 提供 Hypixel 统计信息查询, Minecraft 账户信息查询等功能. 欲了解 Spelako 的更多信息, 请阅读[文档](https://spelako.github.io/).
 
 ## 许可证
 ```
