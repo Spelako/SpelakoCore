@@ -1151,6 +1151,8 @@ class HypixelCommand {
 			'BEDWARS_FOUR_FOUR_ARMED' => ' 4v4v4v4 枪械模式',
 			'BEDWARS_EIGHT TWO_LUCKY' => '双人幸运方块模式',
 			'BEDWARS_FOUR_FOUR_LUCKY' => ' 4v4v4v4 幸运方块模式',
+			'BEDWARS_EIGHT TWO_UNDERWORLD' => '双人 Under World 模式',
+			'BEDWARS_FOUR_FOUR_UNDERWORLD' => ' 4v4v4v4 Under World 模式',
 			'BEDWARS_PRACTICE' => '练习模式',
 			// Bedwars End
 
@@ -1174,6 +1176,11 @@ class HypixelCommand {
 			'MINI_WALLS' => '迷你战墙',
 			'DAYONE' => '行尸走肉',
 			'PVP_CTW' => '捕捉羊毛大作战',
+			'HALLOWEEN_SIMULATOR' => '万圣夜模拟器',
+			'GRINCH_SIMULATOR' => '圣诞怪杰模拟器',
+			'EASTER_SIMULATOR' => '复活节模拟器',
+			'SCUBA_SIMULATOR' => ' Scuba Simulator ', // 可以说是潜水模拟器的 但是官方不给翻译
+
 			// Arcade End
 
 			// Cops and Crims Start
@@ -1229,8 +1236,8 @@ class HypixelCommand {
 			// Murder Mystery End
 
 			// TowerWars Start
-			'TOWERWARS_SOLO' => '单挑模式',
-			'TOWERWARS_TEAM_OF_TWO' => '双人模式',
+			'TOWERWARS_SOLO' => '塔防战争单挑模式',
+			'TOWERWARS_TEAM_OF_TWO' => '塔防战争双人模式',
 			// TowerWars End
 
 			'PIT', null => '',
