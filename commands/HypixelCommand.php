@@ -137,10 +137,10 @@ class HypixelCommand {
 					'胜场: %5$s | 败场: %6$s | W/L: %7$.3f',
 					'当前连胜: %8$s | 最高连胜: %9$s | 造成伤害: %10$s',
 					'回合数: %11$s'. ($mode[0] == null ? ' | 平局数: %12$s ' : ''),
-					(strpos($mode[0], "uhc") === true/\ || strpos($mode[0], 'combo') === true || $mode[0] == null*/\\ ? '食用金苹果: %13$s | ' : '').'回复生命: %14$s'.((strpos($mode[0], 'bridge') === true || strpos($mode[0], 'uhc') === true || strpos($mode[0], 'mw') === true || $mode[0] == null) ? ' | 方块放置: %15$s ':''),
+					(strpos($mode[0], 'uhc') === true || strpos($mode[0], 'combo') === true || $mode[0] == null ? '食用金苹果: %13$s | ' : '').'回复生命: %14$s'.((strpos($mode[0], 'bridge') === true || strpos($mode[0], 'uhc') === true || strpos($mode[0], 'mw') === true || $mode[0] == null) ? ' | 方块放置: %15$s ':''),
 					'击杀: %16$s | 死亡: %17$s | K/D: %18$.3f',
-					(strpos($mode[0], 'sumo') !== true && strpos($mode[0], 'classic') !== true && strpos($mode[0], 'potion') !== true)?'弓箭 - 射击: %19$s | 命中: %20$s | 命中率: %21$.1f%%' : '',
-					'近战 - 挥舞: %22$s | 命中: %23$s | 命中率: %24$.1f%%',
+					(strpos($mode[0], 'sumo') !== true && strpos($mode[0], 'classic') !== true && strpos($mode[0], 'potion') !== true) ? '弓箭 - 射击: %19$s | 命中: %20$s | 命中率: %21$.1f%%' : '',
+					'近战 - 出击: %22$s | 命中: %23$s | 命中率: %24$.1f%%',
 					'此命令详细用法可在此处查看: %25$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
@@ -765,7 +765,7 @@ class HypixelCommand {
 						]));
 					}
 					return SpelakoUtils::buildString([
-						self::PARKOUR_LOBBY_CHECKPOINT[$lobby] != -1 ? '%1$s 的%2$s跑酷每个存档点最佳记录:':'%1$s 的%2$s跑酷详细信息 (该跑酷无存档点):',
+						self::PARKOUR_LOBBY_CHECKPOINT[$lobby] != -1 ? '%1$s 的%2$s跑酷每个存档点最佳记录:' : '%1$s 的%2$s跑酷详细信息 (该跑酷无存档点):',
 						'%3$s',
 						'完成跑酷用时: %4$s',
 						$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook'] != null ? '记录创建于: %5$s' : null
