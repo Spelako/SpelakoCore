@@ -24,6 +24,7 @@ class HypixelCommand {
 			'- bedwars, bw',
 			'- skywars, sw',
 			'- murdermystery, mm',
+			'- duels, duel',
 			'- uhc',
 			'- megawalls, mw',
 			'- blitzsg, bsg, hungergames',
@@ -75,6 +76,98 @@ class HypixelCommand {
 					number_format($p['stats']['HungerGames']['kills']),
 					number_format($p['stats']['HungerGames']['deaths']),
 					SpelakoUtils::div($p['stats']['HungerGames']['kills'], $p['stats']['HungerGames']['deaths'])
+				]);
+			case 'duels':
+			case 'duel':
+				$mode = match($args[3]) { // [keyPrefix, displayName, keyPrefixWinStreak]
+					'classic_duel', 'classic' => ['classic_duel_', '经典决斗', '_classic_duel'],
+					'sw_duel', 'sw' => ['sw_duel_', '空岛战争决斗', '_sw_duel'],
+					'sw_doubles' => ['sw_doubles_', '空岛战争决斗双人决斗', '_sw_doubles'],
+					'bow_duel', 'bow' => ['bow_duel_', '弓箭决斗', '_bow_duel'],
+					'uhc_duel', 'uhc' => ['uhc_duel_', '极限生存决斗', '_uhc_duel'],
+					'uhc_doubles' => ['uhc_doubles_', '极限生存冠军双人决斗', '_uhc_doubles'],
+					'uhc_four' => ['uhc_four_', '极限生存冠军四人决斗', '_uhc_four'],
+					'uhc_meetup' => ['uhc_meetup_', '极限生存冠军死亡竞赛决斗', '_uhc_meetup'],
+					'potion_duel', 'potion', 'nodebuff' => ['potion_duel_', '药水决斗', '_potion_duel'],
+					'combo_duel', 'combo' => ['combo_duel_', '连击决斗', '_combo_duel'],
+					'op_duel', 'op' => ['op_duel_', '高手决斗', '_op_duel'],
+					'op_doubles' => ['op_doubles_', '高手双人决斗', '_op_doubles'],
+					'mw_duel', 'mw' => ['mw_duel_', '超级战墙决斗', '_mw_duel'],
+					'mw_doubles' => ['mw_doubles_', '超级战墙双人决斗', '_mw_doubles'],
+					'sumo_duel', 'sumo' => ['sumo_duel_', '相扑决斗', '_sumo_duel'],
+					'blitz_duel', 'blitz' => ['blitz_duel_', '闪电饥饿游戏决斗', '_blitz_duel'],
+					'bowspleef_duel', 'bowspleef' => ['bowspleef_duel_', '掘一死箭决斗', '_bowspleef_duel'],
+					'bridge_duel', 'bridge' => ['bridge_duel_', '战桥决斗', '_bridge_duel'],
+					'bridge_doubles' => ['bridge_doubles_', '战桥双人决斗', '_bridge_doubles'],
+					'bridge_four' => ['bridge_four_', '战桥四人决斗', '_bridge_four'],
+					'bridge_2v2v2v2' => ['bridge_2v2v2v2_', '战桥 2v2v2v2 决斗', '_bridge_2v2v2v2'],
+					'bridge_3v3v3v3' => ['bridge_3v3v3v3_', '战桥 4v4v4v4 决斗', '_bridge_3v3v3v3'],
+					null => ['', '全局'],
+					default => 'ERROR'
+				};
+				if($mode == 'ERROR') return SpelakoUtils::buildString([
+					'未知的模式.',
+					'目前支持的模式可以是下列之一:',
+					'- classic_duel, classic', 
+					'- sw_duel, sw', 
+					'- sw_doubles', 
+					'- bow_duel, bow', 
+					'- uhc_duel, uhc', 
+					'- uhc_doubles', 
+					'- uhc_four', 
+					'- uhc_meetup', 
+					'- potion_duel, potion, nodebuff', 
+					'- combo_duel, combo', 
+					'- op_duel, op', 
+					'- op_doubles', 
+					'- mw_duel, mw', 
+					'- mw_doubles', 
+					'- sumo_duel, sumo', 
+					'- blitz_duel, blitz', 
+					'- bowspleef_duel, bowspleef', 
+					'- bridge_duel, bridge', 
+					'- bridge_doubles', 
+					'- bridge_four', 
+					'- bridge_2v2v2v2', 
+					'- bridge_3v3v3v3'
+				]);
+				return SpelakoUtils::buildString([
+					'%1$s 的决斗游戏%2$s统计信息:',
+					$mode[0] == '' ? '硬币: %3$s | Ping 偏好：%4$s' : '',
+					'胜场: %5$s | 败场: %6$s | W/L: %7$.3f',
+					'当前连胜: %8$s | 最高连胜: %9$s | 造成伤害: %10$s',
+					'回合数: %11$s'. ($mode[0] == null ? ' | 平局数: %12$s ' : ''),
+					(strpos($mode[0], "uhc") === true/\ || strpos($mode[0], 'combo') === true || $mode[0] == null*/\\ ? '食用金苹果: %13$s | ' : '').'回复生命: %14$s'.((strpos($mode[0], 'bridge') === true || strpos($mode[0], 'uhc') === true || strpos($mode[0], 'mw') === true || $mode[0] == null) ? ' | 方块放置: %15$s ':''),
+					'击杀: %16$s | 死亡: %17$s | K/D: %18$.3f',
+					(strpos($mode[0], 'sumo') !== true && strpos($mode[0], 'classic') !== true && strpos($mode[0], 'potion') !== true)?'弓箭 - 射击: %19$s | 命中: %20$s | 命中率: %21$.1f%%' : '',
+					'近战 - 挥舞: %22$s | 命中: %23$s | 命中率: %24$.1f%%',
+					'此命令详细用法可在此处查看: %25$s/#help'
+				], [
+					self::getNetworkRank($p).$p['displayname'],
+					$mode[1],
+					number_format($p['stats']['Duels']['coins']),
+					number_format($p['stats']['Duels']['pingPreference']),
+					number_format($p['stats']['Duels'][$mode[0].'wins']),
+					number_format($p['stats']['Duels'][$mode[0].'losses']),
+					SpelakoUtils::div($p['stats']['Duels'][$mode[0].'wins'], $p['stats']['Duels'][$mode[0].'losses']),
+					number_format($mode[0] == null ? $p['stats']['Duels']['current_winstreak'] : $p['stats']['Duels']['current_winstreak_mode'.$mode[2]]),
+					number_format($mode[0] == null ? $p['stats']['Duels']['best_overall_winstreak'] : $p['stats']['Duels']['best_winstreak_mode'.$mode[2]]),
+					number_format($p['stats']['Duels'][$mode[0].'damage_dealt']),
+					number_format($p['stats']['Duels'][$mode[0].'rounds_played']),
+					number_format($p['stats']['Duels'][$mode[0].'games_played_duels'] - $p['stats']['Duels'][$mode[0].'wins'] - $p['stats']['Duels'][$mode[0].'losses']),
+					number_format($p['stats']['Duels'][$mode[0].'golden_apples_eaten']),
+					number_format($p['stats']['Duels'][$mode[0].'health_regenerated']),
+					number_format($p['stats']['Duels'][$mode[0].'blocks_placed']),
+					number_format($p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'kills']),
+					number_format($p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'deaths']),
+					SpelakoUtils::div($p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'kills'], $p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'deaths']),
+					number_format($p['stats']['Duels'][$mode[0].'bow_shots']),
+					number_format($p['stats']['Duels'][$mode[0].'bow_hits']),
+					100 * SpelakoUtils::div($p['stats']['Duels'][$mode[0].'bow_hits'], $p['stats']['Duels'][$mode[0].'bow_hits'] + $p['stats']['Duels'][$mode[0].'bow_shots']),
+					number_format($p['stats']['Duels'][$mode[0].'melee_swings']),
+					number_format($p['stats']['Duels'][$mode[0].'melee_hits']),
+					100 * SpelakoUtils::div($p['stats']['Duels'][$mode[0].'melee_hits'], $p['stats']['Duels'][$mode[0].'melee_hits'] + $p['stats']['Duels'][$mode[0].'melee_swings']),
+					Spelako::INFO['link'],
 				]);
 			case 'uhc':
 				return SpelakoUtils::buildString([
@@ -491,7 +584,7 @@ class HypixelCommand {
 							'%1$s 的空岛生存 %2$s 存档物品拍卖信息:',
 							'%3$s', // Body placeholder
 							'当前展示 %4$d/%5$d 页.',
-							'使用 /hyp %6$s sb a %7$s <页数> 来查看具体页数的拍卖信息.', 
+							$totPages > 1 ?'使用 /hyp %6$s sb a %7$s <页数> 来查看具体页数的拍卖信息.' : '', 
 							], [
 								self::getNetworkRank($p).$p['displayname'],
 								$profiles[$profile_id]['cute_name'],
@@ -626,7 +719,7 @@ class HypixelCommand {
 					'%1$s 的最近游玩的游戏:',
 					'%2$s',
 					'当前展示 %3$d/%4$d 页.',
-					'使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.'
+					$totPages > 1 ? '使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.' : ''
 				], [
 					self::getNetworkRank($p).$p['displayname'],
 					SpelakoUtils::buildString($placeholder),
@@ -711,6 +804,7 @@ class HypixelCommand {
 					'- bedwars, bw',
 					'- skywars, sw',
 					'- murdermystery, mm',
+					'- duels, duel',
 					'- uhc',
 					'- megawalls, mw',
 					'- blitzsg, bsg, hungergames',
@@ -1151,6 +1245,8 @@ class HypixelCommand {
 			'BEDWARS_FOUR_FOUR_ARMED' => ' 4v4v4v4 枪械模式',
 			'BEDWARS_EIGHT TWO_LUCKY' => '双人幸运方块模式',
 			'BEDWARS_FOUR_FOUR_LUCKY' => ' 4v4v4v4 幸运方块模式',
+			'BEDWARS_EIGHT TWO_UNDERWORLD' => '双人 Under World 模式',
+			'BEDWARS_FOUR_FOUR_UNDERWORLD' => ' 4v4v4v4 Under World 模式',
 			'BEDWARS_PRACTICE' => '练习模式',
 			// Bedwars End
 
@@ -1174,6 +1270,11 @@ class HypixelCommand {
 			'MINI_WALLS' => '迷你战墙',
 			'DAYONE' => '行尸走肉',
 			'PVP_CTW' => '捕捉羊毛大作战',
+			'HALLOWEEN_SIMULATOR' => '万圣夜模拟器',
+			'GRINCH_SIMULATOR' => '圣诞怪杰模拟器',
+			'EASTER_SIMULATOR' => '复活节模拟器',
+			'SCUBA_SIMULATOR' => ' Scuba Simulator ', // 可以说是潜水模拟器的 但是官方不给翻译
+
 			// Arcade End
 
 			// Cops and Crims Start
@@ -1212,7 +1313,7 @@ class HypixelCommand {
 			'DUELS_MW_DUEL' => '超级战墙决斗',
 			'DUELS_MW_DOUBLES' => '超级战墙双人决斗',
 			'DUELS_SUMO_DUEL' => '相扑决斗',
-			'DUELS_BLITZ_DUEL' => '商店街游戏决斗',
+			'DUELS_BLITZ_DUEL' => '闪电饥饿游戏决斗',
 			'DUELS_BOWSPLEEF_DUEL' => '掘一死箭决斗',
 			'DUELS_BRIDGE_DUEL' => '战桥决斗',
 			'DUELS_BRIDGE_DOUBLES' => '战桥双人决斗',
@@ -1229,10 +1330,11 @@ class HypixelCommand {
 			// Murder Mystery End
 
 			// TowerWars Start
-			'TOWERWARS_SOLO' => '单挑模式',
-			'TOWERWARS_TEAM_OF_TWO' => '双人模式',
+			'TOWERWARS_SOLO' => '塔防战争单挑模式',
+			'TOWERWARS_TEAM_OF_TWO' => '塔防战争双人模式',
+			
 			// TowerWars End
-
+			'PIXEL_PARTY' => ' Pixel Party ',
 			'PIT', null => '',
 			'all' => '全局',
 			default => ' '.$modeName.' '
