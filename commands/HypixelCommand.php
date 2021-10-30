@@ -373,7 +373,7 @@ class HypixelCommand {
 					$mode[0] != '_MURDER_INFECTION' ? '击杀: %15$s | 陷阱击杀: %20$s ' : '',
 					$mode[0] != '_MURDER_INFECTION' ? '近战击杀: %17$s | 飞刀击杀: %18$s | 弓箭击杀: %19$s' : '',
 					($mode[0] != '_MURDER_ASSASSINS' && $mode[0] != '_MURDER_INFECTION') ? '作为杀手击杀: %14$s | 英雄: %21$s' : '',
-					($mode[0] != '_MURDER_ASSASSINS' && $mode[0] != '_MURDER_INFECTION') ? '侦探最快胜利: %22$s s | 杀手最快胜利: %23$s s' : '',
+					($mode[0] != '_MURDER_ASSASSINS' && $mode[0] != '_MURDER_INFECTION') ? '侦探最快胜利: %22$ss | 杀手最快胜利: %23$ss' : '',
 					($mode[0] == '' || $mode[0] == '_MURDER_INFECTION') ? '作为感染者击杀: %26$s | 作为幸存者击杀: %27$s' : '',
 					($mode[0] == '' || $mode[0] == '_MURDER_INFECTION') ? '幸存者总存活: %9$s | 幸存者最久存活: %10$ss' : '',
 					'此命令详细用法可在此处查看: %24$s/#help'
