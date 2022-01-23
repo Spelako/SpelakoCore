@@ -10,6 +10,7 @@ class SpelakoUtils {
 	// Cache system is supported: default expiration is 0 second
 	public static function getURL($url, array $query = [], $cacheExpiration = 0, $cachePath = self::CACHE_DIRECTORY) {
 		$fullURL = $url.'?'.http_build_query($query);
+		//echo $fullURL;
 		$cacheFile = $cachePath.'/'.hash('md5', $fullURL);
 		if(file_exists($cacheFile) && (time() - filemtime($cacheFile)) <= $cacheExpiration) {
 			return FileSystem::fileRead($cacheFile);
@@ -22,7 +23,7 @@ class SpelakoUtils {
 			FileSystem::fileWrite($cacheFile, $result);
 			return $result;
 		}
-
+		else if(str_contains($http_response_header[0], 'Too Many Requests')) return -1;
 		return false;
 	}
 

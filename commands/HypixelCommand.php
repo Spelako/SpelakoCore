@@ -34,14 +34,17 @@ class HypixelCommand {
 			'更多分类正在开发中...',
 		], [self::USAGE]);
 		$p = self::fetchGeneralStats($args[1]);
-		if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
+		if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
+		if($p == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
 		if($p == 'ERROR_PLAYER_NOT_FOUND') return '找不到此玩家, 请确认拼写无误.';
+		if($p == 'ERROR_NEED_COOL_DOWN') return '该玩家需要一段冷却时间才能查询, 请一段时间后再试.';
 		
 		switch($args[2]) {
 			case 'guild':
 			case 'g':
 				$g = self::fetchGuild($p['uuid']);
-				if($g == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
+				if($g == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
+				if($g == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
 				if($g == 'ERROR_GUILD_NOT_FOUND') return sprintf(
 					'玩家 %s 没有加入任何公会.',
 					$p['displayname']
@@ -135,7 +138,7 @@ class HypixelCommand {
 					'%1$s 的决斗游戏%2$s统计信息:',
 					$mode[0] == '' ? '硬币: %3$s | Ping 偏好：%4$s' : '',
 					'胜场: %5$s | 败场: %6$s | W/L: %7$.3f',
-					'当前连胜: %8$s | 最高连胜: %9$s | 造成伤害: %10$s',
+					($p['stats']['Duels']['best_overall_winstreak'] === null && $p['stats']['Duels'][$mode[0].'wins'] != 0 ? '该玩家在 API 设置中阻止获取连胜信息' :'当前连胜: %8$s | 最高连胜: %9$s').' | 造成伤害: %10$s',
 					'回合数: %11$s'. ($mode[0] == null ? ' | 平局数: %12$s ' : ''),
 					(strpos($mode[0], 'uhc') === true || strpos($mode[0], 'combo') === true || $mode[0] == null ? '食用金苹果: %13$s | ' : '').'回复生命: %14$s'.((strpos($mode[0], 'bridge') === true || strpos($mode[0], 'uhc') === true || strpos($mode[0], 'mw') === true || $mode[0] == null) ? ' | 方块放置: %15$s ':''),
 					'击杀: %16$s | 死亡: %17$s | K/D: %18$.3f',
@@ -286,7 +289,7 @@ class HypixelCommand {
 					number_format($p['stats']['Bedwars']['coins']),
 					number_format($p['stats']['Bedwars'][$mode[0].'beds_broken_bedwars']),
 					number_format($p['stats']['Bedwars'][$mode[0].'beds_lost_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'winstreak']),
+					$p['stats']['Bedwars'][$mode[0].'winstreak'] === null && $p['stats']['Bedwars'][$mode[0].'wins_bedwars'] != 0 ? '玩家阻止获取' : number_format($p['stats']['Bedwars'][$mode[0].'winstreak']),
 					number_format($p['stats']['Bedwars'][$mode[0].'wins_bedwars']),
 					number_format($p['stats']['Bedwars'][$mode[0].'losses_bedwars']),
 					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'wins_bedwars'], $p['stats']['Bedwars'][$mode[0].'losses_bedwars']),
@@ -541,7 +544,10 @@ class HypixelCommand {
 						}
 						$placeholder = array();
 						$auctions = self::fetchSkyblockAuction($profile_id);
-						if($auctions == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
+						if($auctions == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
+						if($auctions == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
+
+						
 						if($auctions == 'ERROR_AUCTIONS_NOT_FOUND') return sprintf('找不到玩家 %1$s 的空岛生存 %2$s 存档中的物品拍卖信息.', $p['displayname'], $profiles[$profile_id]['cute_name']).((count($profiles) > 1) ? ' 你可以尝试查询此玩家的其他存档.' : '');
 						$total = count($auctions);
 						$totPages = ceil($total / 5);
@@ -622,7 +628,8 @@ class HypixelCommand {
 						$profile = self::fetchSkyblockProfile($profile_id);
 						$member = $profile['members'][$p['uuid']];
 						// If possible (allowed by player), access Skyblock Profile API insdead of Player API.
-						if(self::isSkyblockProfileAccessible($member)) {
+						
+						if(self::isSkyblockProfileAccessible($member) && $profile != -1) {
 							$profileAccessible = true;
 							foreach(self::SKYBLOCK_SKILLS as $skill) {
 								$skillLevels[$skill] = self::getSkyblockLevel($member['experience_skill_'.$skill], $skill == 'runecrafting');
@@ -645,7 +652,7 @@ class HypixelCommand {
 							'挖矿: %5$d | 战斗: %6$d',
 							'林业: %7$d | 钓鱼: %8$d',
 							'附魔: %9$d | 酿造: %10$d',
-							$profileAccessible ? '木工: %11$d | 符文合成: %12$d' : '注意: 无法访问玩家技能 API, 已显示各存档的最高等级.'
+							$profileAccessible ? '木工: %11$d | 符文合成: %12$d' : ( $profile == -1 ? '注意: 访问该玩家技能 API 时超时或失败, ' : '注意: 该玩家技能信息被玩家在 API 设置中被阻止, ').'已显示为跨存档的最高等级.'
 						], [
 							self::getNetworkRank($p).$p['displayname'],
 							$profiles[$profile_id]['cute_name'],
@@ -695,7 +702,8 @@ class HypixelCommand {
 			case 'r':
 			case 'recent':
 				$r = self::fetchRecentGames($p['uuid']);
-				if ($r == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
+				if ($r == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
+				if ($r == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
 				if ($r == 'ERROR_RECENT_GAMES_NOT_FOUND') return sprintf('玩家 %s 没有最近的游戏, 或在 API 设置中禁止了此请求.', $p['displayname']);
 				$placeholder = array();
 				$total = count($r);
@@ -817,17 +825,19 @@ class HypixelCommand {
 				]);
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
 				$s = $online ? self::fetchStatus($p['uuid']) : false;
-				$statusAvailable = ($s && $s['online'] == true);
+				$statusAvailable = ($s != false);
 				return SpelakoUtils::buildString([
 					'%1$s 的 Hypixel 信息:',
 					'等级: %2$.3f | 人品: %3$s',
 					'成就点数: %4$s | 小游戏胜场: %5$s',
 					'完成任务: %6$s | 完成挑战: %7$s',
-					'获得硬币: %8$s',
-					'最近游玩: %9$s',
+					'获得硬币: %8$s | 使用语言: %17$s',
+					$p['mostRecentGameType'] != null ?'最近游玩: %9$s':'',
 					'首次登录: %10$s',
-					'上次登录: %11$s',
-					($online ? '● 此玩家在线了 %12$s, '.($s ? ($statusAvailable ? '当前在%13$s%14$s%15$s中.' : '该玩家在 API 设置中阻止了获取当前游戏的请求. ' ) : '获取当前游戏时出错.') : '上次退出: %12$s'),
+					$p['lastLogin'] != null ? '上次登录: %11$s' : '',
+					$online ? '● 此玩家在线了 %12$s, '.($statusAvailable ? '当前在%13$s%14$s%15$s中.' : '获取当前游戏时出错 ' ) :($p['lastLogin'] ? '上次退出: %12$s' : ''),
+					$p['mostRecentGameType'] == 0 ? '该玩家在 API 设置中阻止了最近游戏请求, 或者最近没有游玩.' : '',
+					$p['lastLogin'] == 0 ? '该玩家在 API 设置中阻止了在线状态请求.' : '',
 					'此命令详细用法可在此处查看: %16$s/#help'
 				], [
 					self::getNetworkRank($p).$p['displayname'],
@@ -838,14 +848,15 @@ class HypixelCommand {
 					number_format($p['achievements']['general_quest_master']),
 					number_format($p['achievements']['general_challenger']),
 					number_format($p['achievements']['general_coins']),
-					$p['mostRecentGameType'] != null ? self::getGameName($p['mostRecentGameType']) : '未知',
-					$p['firstLogin'] != null ? SpelakoUtils::convertTime($p['firstLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知',
-					$p['lastLogin'] != null ? SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知',
-					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : ($p['lastLogout'] != null ? SpelakoUtils::convertTime($p['lastLogout'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET) : '未知'),
+					self::getGameName($p['mostRecentGameType']),
+					SpelakoUtils::convertTime($p['firstLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET),
+					SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET),
+					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: self::TIMEZONE_OFFSET),
 					$statusAvailable ? self::getGameName($s['gameType']) : '',
 					$statusAvailable ? self::getModeName($s['mode']) : '',
 					$statusAvailable ? (($statusMap = self::getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
-					Spelako::INFO['link']
+					Spelako::INFO['link'],
+					self::getLanguageName($p['userLanguage'])
 				]);
 		}
 	}
@@ -853,50 +864,56 @@ class HypixelCommand {
 	private static function fetchGeneralStats($player) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => self::API_KEY, 'name' => $player], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['player']) == null) {
-			return 'ERROR_PLAYER_NOT_FOUND';
-		}
-		return $result;
+		if(($src) == -1) return "ERROR_NEED_COOL_DOWN";
+		$result = json_decode($src, true);
+
+		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
+		if(($result['player']) == null) return 'ERROR_PLAYER_NOT_FOUND';
+		return $result['player'];
 	}
 
 	private static function fetchGuild($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => self::API_KEY, 'player' => $playerUuid], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['guild']) == null) {
-			return 'ERROR_GUILD_NOT_FOUND';
-		}
-		return $result;
+		$result = json_decode($src, true);
+		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
+		if(($result['guild']) == null) return 'ERROR_GUILD_NOT_FOUND';
+		return $result['guild'];
 	}
 	
 	private static function fetchRecentGames($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => self::API_KEY, 'uuid' => $playerUuid], 45);
+		
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['games']) == null) {
-			return 'ERROR_RECENT_GAMES_NOT_FOUND';
-		}
-		return $result;
+		$result = json_decode($src, true);
+		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
+		if(($result['games']) == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
+		return $result['games'];
 	}
 
 	private static function fetchStatus($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => self::API_KEY, 'uuid' => $playerUuid], 10);
-		if($src) {
-			return json_decode($src, true)['session'];
+		if($src != null & (($result = json_decode($src, true)['session']) != null)) {
+			return $result;
 		}
 		return false;
 	}
 	
 	private static function fetchSkyblockAuction($profile) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => self::API_KEY, 'profile' => $profile], 300);
+		
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($result = json_decode($src, true)['auctions']) == null) return 'ERROR_AUCTIONS_NOT_FOUND';
-		return array_reverse($result);
+		$result = json_decode($src, true);
+		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
+		if(($result['auctions']) == null) return 'ERROR_AUCTIONS_NOT_FOUND';
+		return array_reverse($result['auctions']);
 	}
 
 	private static function fetchSkyblockProfile($profile) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/profile', ['key' => self::API_KEY, 'profile' => $profile], 300);
-		if($src && (($result = json_decode($src, true)['profile'])) != null) {
-			return $result;
-		}
+		$result = json_decode($src, true);
+		if(($result['success']) == null) return -1;
+		if ($result['profile'] != null) return $result['profile'];
 		return false;
 	}
 
@@ -960,6 +977,29 @@ class HypixelCommand {
 		return -1;
 	}
 
+	private static function getLanguageName($typeName) {
+		return match($typeName) {
+			'ENGLISH' => '英语',
+			'GERMAN' => '德语',
+			'FRENCH' => '法语',
+			'CHINESE_SIMPLIFIED' => '简体中文',
+			'CHINESE_TRADITIONAL' => '繁体中文',
+			'PORTUGUESE_BR' => '葡萄牙语_巴西',
+			'RUSSIAN' => '俄语',
+			'KOREAN' => '韩语/朝鲜语',
+			'POLISH' => '波兰语',
+			'JANPANESE' => '日本语',
+			'PIRATE' => '海盗语',
+			'PORTUGUESE_PT' => '葡萄牙语_葡萄牙',
+			'TURKISH' => '土耳其',
+			'CZECH' => '捷克语',
+			'FINNISH' => '芬兰语',
+			'GREEK' => '希腊语',
+			'' => '获取被阻止',
+			default => $typeName
+		};
+		
+	}
 
 	private static function getGameName($typeName) {
 		return match($typeName) {
@@ -1237,7 +1277,7 @@ class HypixelCommand {
 			'BEDWARS_FOUR_FOUR_RUSH' => ' 4v4v4v4 疾速模式',
 			'BEDWARS_EIGHT_TWO_ULTIMATE' => '双人超能力模式',
 			'BEDWARS_FOUR_FOUR_ULTIMATE' => ' 4v4v4v4 超能力模式',
-			'BEDWARS_CASTLE' => '40v40城池攻防战模式',
+			'BEDWARS_CASTLE' => ' 40v40 城池攻防战模式',
 			'BEDWARS_TWO_FOUR' => '4V4 模式',
 			'BEDWARS_EIGHT_TWO_VOIDLESS' => '双人无虚空模式',
 			'BEDWARS_FOUR_FOUR_VOIDLESS' => ' 4v4v4v4 无虚空模式',
