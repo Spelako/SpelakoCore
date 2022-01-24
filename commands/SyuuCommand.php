@@ -1,19 +1,41 @@
 <?php
-class SyuuCommand {
-	const USAGE = '/syuu ...';
-	const ALIASES = [];
-	const DESCRIPTION = '获取 SyuuNet 的玩家信息或排行榜';
-	const COOLDOWN = true;
+/*
+ * Copyright (C) 2020-2022 Spelako Project
+ * 
+ * This file is part of SpelakoCore. Permission is granted to use, modify and/or distribute this program under the terms of the GNU Affero General Public License version 3 (AGPLv3).
+ * You should have received a copy of the license along with this program. If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
+ * 
+ * 本文件是 SpelakoCore 的一部分. 在 GNU 通用公共许可证第三版 (AGPLv3) 的约束下, 你有权使用, 修改, 复制和/或传播该程序.
+ * 你理当随同本程序获得了此许可证的副本. 如果没有, 请查阅 <https://www.gnu.org/licenses/agpl-3.0.html>.
+ * 
+ */
 
+class SyuuCommand {
 	const API_BASE_URL = 'https://api.syuu.net';
 	const WEB_BASE_URL = 'https://www.syuu.net';
 
-	public static function execute(array $args) {
+	public function getUsage() {
+		return '/syuu ...';
+	}
+
+	public function getAliases() {
+		return [];
+	}
+
+	public function getDescription() {
+		return '获取 SyuuNet 的玩家信息或排行榜';
+	}
+
+	public function hasCooldown() {
+		return true;
+	}
+
+	public function execute(array $args) {
 		switch($args[1]) {
 			case 'player':
 			case 'user':
 				if(!isset($args[2])) return '正确用法: /syuu player <玩家>';
-				$p = self::fetchPlayerStats($args[2]);
+				$p = $this->fetchPlayerStats($args[2]);
 				if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
 				if($p == 'ERROR_RANKED_DATA_NOT_FOUND') return '此玩家没有排位数据.';
 				$placeholder = array();
@@ -50,9 +72,9 @@ class SyuuCommand {
 						'... 欲查看完整列表, 请访问帮助文档.'
 					]);
 				}
-				$lb = self::fetchPracticeLeaderboards();
+				$lb = $this->fetchPracticeLeaderboards();
 				if(!$lb) return '无法解析来自 SyuuNet 的数据.';
-				$category = self::getCategoryName($args[2]);
+				$category = $this->getCategoryName($args[2]);
 				$invalidCategory = false;
 				if(!$category) {
 					$category = 'Sharp2Prot2';
@@ -80,7 +102,7 @@ class SyuuCommand {
 		}
 	}
 
-	private static function fetchPracticeLeaderboards() {
+	private function fetchPracticeLeaderboards() {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/public/leader-boards/practice', cacheExpiration: 300);
 		if($src && ($result = json_decode($src, true)['response'])) {
 			return $result;
@@ -88,7 +110,7 @@ class SyuuCommand {
 		return false;
 	}
 	
-	private static function fetchPlayerStats($player) {
+	private function fetchPlayerStats($player) {
 		if(strlen($player) > 16) return false;
 		$src = SpelakoUtils::getURL(self::WEB_BASE_URL.'/user/'.$player, cacheExpiration: 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
@@ -105,7 +127,7 @@ class SyuuCommand {
 		return $stats;
 	}
 
-	private static function getCategoryName($category) {
+	private function getCategoryName($category) {
 		return match($category) {
 			'sharp2prot2', 's2p2' => 'Sharp2Prot2',
 			'mcsg', 'sg' => 'MCSG',

@@ -1,0 +1,15 @@
+{
+	"usage": "/help [命令]",
+	"description": "查看命令帮助",
+	"messages": {
+		"layout": [
+			"Spelako 命令列表:",
+			"%1$s",
+			"欲查看命令详细用法, 请访问 %2$s/help?id=help"
+		],
+		"placeholders": {
+			"command": "%1$s - %2$s",
+			"command_alias": "%1$s - 命令 %2$s 的别名"
+		}
+	}
+}

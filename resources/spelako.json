@@ -1,0 +1,43 @@
+{
+	"usage": "/spelako",
+	"description": "关于 Spelako",
+	"messages": {
+		"help": {
+			"layout": [
+				"Spelako 管理员命令列表:",
+				"/spelako help - 查看所有可用的管理员命令",
+				"/spelako echo <文本> - 使机器人复读消息",
+				"/spelako stats - 查看 Spelako 统计信息",
+				"/spelako clean - 清理所有缓存文件"
+			]
+		},
+		"echo": {
+			"layout": "那只敏捷的棕毛狐狸跃过了这条懒洋洋的狗."
+		},
+		"stats": {
+			"layout": [
+				"Spelako 统计信息:",
+				"缓存用户冷却: %1$d",
+				"缓存文件总数: %2$d",
+				"缓存占用空间: %3$s",
+				"欲清理所有缓存, 请使用此命令:",
+				"/spelako clean"
+			]
+		},
+		"clean": {
+			"layout": "已清理缓存文件 %s."
+		},
+		"default": {
+			"layout": [
+				"关于 Spelako:",
+				"Spelako 是一个提供 Minecraft 相关查询功能的机器人.",
+				"当前版本为 Spelako %1$s, 上次更新于 %2$s.",
+				"本程序是自由软件, 你可以在 GitHub 上获取其源代码.",
+				"开发者: %3$s",
+				"了解更多请访问此链接: %4$s",
+				"%5$s"
+			],
+			"placeholder": "使用 /spelako help 以查看管理员命令."
+		}
+	}
+}

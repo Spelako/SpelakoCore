@@ -1,8 +1,15 @@
 <?php
 /*
-	The class SpelakoUtils provides the most common methods
-	that would of great use for creating commands for Spelako.
-*/
+ * Copyright (C) 2020-2022 Spelako Project
+ * 
+ * This file is part of SpelakoCore. Permission is granted to use, modify and/or distribute this program under the terms of the GNU Affero General Public License version 3 (AGPLv3).
+ * You should have received a copy of the license along with this program. If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
+ * 
+ * 本文件是 SpelakoCore 的一部分. 在 GNU 通用公共许可证第三版 (AGPLv3) 的约束下, 你有权使用, 修改, 复制和/或传播该程序.
+ * 你理当随同本程序获得了此许可证的副本. 如果没有, 请查阅 <https://www.gnu.org/licenses/agpl-3.0.html>.
+ * 
+ */
+
 class SpelakoUtils {
 	const CACHE_DIRECTORY = 'cache';
 
@@ -28,8 +35,8 @@ class SpelakoUtils {
 	}
 
 	// Joins the first array with line breaks and get the placeholders replaced with the values in the second array
-	public static function buildString(array $lines, array $replacements = []) {
-		return vsprintf(implode(PHP_EOL, array_filter($lines)), $replacements);
+	public static function buildString(array $lines, array $replacements = [], $eol = false) {
+		return vsprintf(implode(PHP_EOL, array_filter($lines)), $replacements).($eol ? PHP_EOL : '');
 	}
 
 	// Converts timestamp to a human-readable format, regarding the default timezone set in the config

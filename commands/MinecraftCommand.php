@@ -1,16 +1,38 @@
 <?php
-class MinecraftCommand{
-	const USAGE = '/minecraft <玩家>';
-	const ALIASES = ['/mc'];
-	const DESCRIPTION = '获取指定玩家的 Minecraft 账户信息';
-	const COOLDOWN = true;
+/*
+ * Copyright (C) 2020-2022 Spelako Project
+ * 
+ * This file is part of SpelakoCore. Permission is granted to use, modify and/or distribute this program under the terms of the GNU Affero General Public License version 3 (AGPLv3).
+ * You should have received a copy of the license along with this program. If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
+ * 
+ * 本文件是 SpelakoCore 的一部分. 在 GNU 通用公共许可证第三版 (AGPLv3) 的约束下, 你有权使用, 修改, 复制和/或传播该程序.
+ * 你理当随同本程序获得了此许可证的副本. 如果没有, 请查阅 <https://www.gnu.org/licenses/agpl-3.0.html>.
+ * 
+ */
 
+class MinecraftCommand {
 	const API_BASE_URL = 'https://api.mojang.com';
 
-	public static function execute(array $args) {
-		if(!isset($args[1])) return sprintf('正确用法: %s', self::USAGE);
+	public function getUsage() {
+		return '/minecraft <玩家>';
+	}
+
+	public function getAliases() {
+		return ['/mc'];
+	}
+
+	public function getDescription() {
+		return '获取指定玩家的 Minecraft 账户信息';
+	}
+
+	public function hasCooldown() {
+		return true;
+	}
+
+	public function execute(array $args) {
+		if(!isset($args[1])) return sprintf('正确用法: %s', $this->getUsage());
 		if(strlen($args[1]) <= 16) {
-			if($uuid = self::fetchUuidById($args[1])) $usingId = true;
+			if($uuid = $this->fetchUuidById($args[1])) $usingId = true;
 			else return '无法通过此 ID 获取玩家信息.';
 		}
 		else if(strlen($args[1]) == 32 || strlen($args[1]) == 36) {
@@ -19,7 +41,7 @@ class MinecraftCommand{
 		}
 		else return '提供的参数不是有效的 ID 或 UUID.';
 	
-		$profile = self::fetchProfileByUuid($uuid);
+		$profile = $this->fetchProfileByUuid($uuid);
 		if(count($profile) == 1) $placeholder = $profile[0]['name'];
 		else {
 			$placeholder = array();
@@ -38,7 +60,7 @@ class MinecraftCommand{
 		]);
 	}
 
-	private static function fetchUuidById($id) {
+	private function fetchUuidById($id) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/users/profiles/minecraft/'.$id, cacheExpiration: 300);
 		if($src && ($result = json_decode($src, true)['id'])) {
 			return $result;
@@ -46,7 +68,7 @@ class MinecraftCommand{
 		return false;
 	}
 
-	private static function fetchProfileByUuid($uuid) {
+	private function fetchProfileByUuid($uuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/user/profiles/'.$uuid.'/names', cacheExpiration: 300);
 		if($src && ($result = json_decode($src, true))) {
 			$result = array_reverse($result, true);
