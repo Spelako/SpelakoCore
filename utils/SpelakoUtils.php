@@ -12,52 +12,87 @@
 
 class SpelakoUtils {
 	const CACHE_DIRECTORY = 'cache';
-
-	// Sends a GET request to a specific URL and return with the request result
-	// Cache system is supported: default expiration is 0 second
-	public static function getURL($url, array $query = [], $cacheExpiration = 0, $cachePath = self::CACHE_DIRECTORY) {
+	
+	/**
+	 * 向指定 URL 发送 GET 请求 (带缓存机制)
+	 *
+	 * @param mixed $url 请求 URL, 不带 GET 参数
+	 * @param mixed $query 请求 GET 参数 (数组, 默认为空)
+	 * @param mixed $cacheExpiration 此请求的缓存有效期 (默认为 0)
+	 * @param mixed &$httpStatus 用于保存请求状态码的变量
+	 * @return string
+	 */
+	public static function getURL(string $url, array $query = [], int $cacheExpiration = 0, string &$httpStatus = '') : string|false {
 		$fullURL = $url.'?'.http_build_query($query);
-		//echo $fullURL;
-		$cacheFile = $cachePath.'/'.hash('md5', $fullURL);
-		if(file_exists($cacheFile) && (time() - filemtime($cacheFile)) <= $cacheExpiration) {
+
+		$cacheFile = self::CACHE_DIRECTORY.'/'.hash('md5', $fullURL);
+		if(FileSystem::fileExists($cacheFile) && (time() - FileSystem::fileLastModified($cacheFile)) <= $cacheExpiration){
 			return FileSystem::fileRead($cacheFile);
 		}
 
 		$result = file_get_contents($fullURL);
-		if(str_contains($http_response_header[0], '200')) {
-			if(!is_dir($cachePath)) mkdir($cachePath);
+		$httpStatus = $http_response_header[0];
+		if(str_contains($httpStatus, '200')) {
 			FileSystem::fileRemove($cacheFile);
 			FileSystem::fileWrite($cacheFile, $result);
 			return $result;
 		}
-		else if(str_contains($http_response_header[0], 'Too Many Requests')) return -1;
+
 		return false;
 	}
 
-	// Joins the first array with line breaks and get the placeholders replaced with the values in the second array
-	public static function buildString(array $lines, array $replacements = [], $eol = false) {
-		return vsprintf(implode(PHP_EOL, array_filter($lines)), $replacements).($eol ? PHP_EOL : '');
+	/**
+	 * 构造一个字符串
+	 *
+	 * @param string|array $layout 字符串布局 (如果是 array, 将使用换行符拼接之)
+	 * @param array $placeholders 用于替换 $layout 中的占位符的值 (可选, 如果 $layout 中没有占位符)
+	 * @param bool $eol 是否在字符串末尾增加换行符
+	 * @return string 结果
+	 */
+	public static function buildString(string|array $layout, array $placeholders = []) : string {
+		if(is_array($layout)) return str_replace(PHP_EOL.PHP_EOL, PHP_EOL, vsprintf(implode(PHP_EOL, $layout), $placeholders));
+		return vsprintf($layout, $placeholders);
 	}
 
-	// Converts timestamp to a human-readable format, regarding the default timezone set in the config
-	public static function convertTime($timestamp, $second = false, $format = 'Y-m-d H:i', $timezone_offset = 0) {
-		if(!$timestamp) return '?';
-		return date($format, $timestamp / ($second ? 1 : 1000) + $timezone_offset);
+	/**
+	 * 通过时间戳格式化一个时刻或时间间隔
+	 *
+	 * @param int|float $timestamp 时间戳
+	 * @param bool $inSeconds 不使用毫秒制
+	 * @param string $format 格式
+	 * @param int|float $offset 偏移量 (秒)
+	 * @return string 结果
+	 */
+	public static function formatTime(int|float $timestamp, bool $inSeconds = false, string $format = 'Y-m-d H:i', int|float $offset = 0) : string {
+		return gmdate($format, $inSeconds ? $timestamp : round($timestamp / 1000) + $offset);
 	}
 
-	// Convert the file size to a human-readable format
-	public static function sizeFormat($byte) {
+	/**
+	 * 格式化一个文件体积
+	 *
+	 * @param int $byte 字节数
+	 * @return string 结果
+	 */
+	public static function sizeFormat(int $byte) : string {
 		$a = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 		$pos = 0;
-		while ($byte >= 1024) {
+		while($byte >= 1024) {
 			$byte /= 1024;
 			$pos ++;
 		}
 		return round($byte, 2).' '.$a[$pos];
 	}
-
-	public static function div($a, $b, $round = 3) {
-		if($b == 0) return 0;
+	
+	/**
+	 * 安全计算除法
+	 *
+	 * @param mixed $a 被除数
+	 * @param mixed $b 除数
+	 * @param mixed $round 保留小数点后的位数
+	 * @return string
+	 */
+	public static function div(int|float|null $a, int|float|null $b, int $round = 3) : string {
+		if(!($a && $b)) return 0;
 		return round($a / $b, $round);
 	}
 }

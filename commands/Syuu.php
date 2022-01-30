@@ -10,95 +10,85 @@
  * 
  */
 
-class SyuuCommand {
+class Syuu {
 	const API_BASE_URL = 'https://api.syuu.net';
 	const WEB_BASE_URL = 'https://www.syuu.net';
 
-	public function getUsage() {
-		return '/syuu ...';
+	function __construct(private SpelakoCore $core, private $config) {
+		$core->loadJsonResource($this->config->resource);
 	}
 
-	public function getAliases() {
-		return [];
+	public function getName() {
+		return ['/syuu'];
+	}
+
+	public function getUsage() {
+		return SpelakoUtils::buildString($this->core->getJsonValue($this->config->resource, 'usage'));
 	}
 
 	public function getDescription() {
-		return '获取 SyuuNet 的玩家信息或排行榜';
+		return $this->core->getJsonValue($this->config->resource, 'description');
 	}
 
 	public function hasCooldown() {
 		return true;
 	}
 
+	private function getMessage($key) {
+		return $this->core->getJsonValue($this->config->resource, 'messages.'.$key);
+	}
+
 	public function execute(array $args) {
+		if(!isset($args[1])) return $this->getMessage('default.layout');
 		switch($args[1]) {
 			case 'player':
 			case 'user':
-				if(!isset($args[2])) return '正确用法: /syuu player <玩家>';
+				if(!isset($args[2])) return $this->getMessage('user.info.usage');
 				$p = $this->fetchPlayerStats($args[2]);
-				if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送失败, 请稍后再试.';
-				if($p == 'ERROR_RANKED_DATA_NOT_FOUND') return '此玩家没有排位数据.';
+				if($p == 'ERROR_REQUEST_FAILED') return $this->getMessage('user.info.request_failed');
+				if($p == 'ERROR_RANKED_DATA_NOT_FOUND') return $this->getMessage('user.info.ranked_data_not_found');
 				$placeholder = array();
-				foreach($p['RankedData'] as $k => $v) {
-					array_push($placeholder, sprintf(
-						'[%1$s] Elo: %2$d | 胜: %3$d | 败: %4$d',
+				foreach($p['RankedData'] as $k => $v) array_push($placeholder, SpelakoUtils::buildString(
+					$this->getMessage('user.placeholder'),
+					[
 						$k,
 						$v['Elo'],
 						$v['Win'],
 						$v['Lose']
-					));
-				}
-				return SpelakoUtils::buildString([
-					'%1$s 的 SyuuNet 排位信息:',
-					'%2$s'
-				], [
-					$p['name'],
-					SpelakoUtils::buildString($placeholder)
-				]);
+					]
+				));
+				return SpelakoUtils::buildString(
+					$this->getMessage('user.layout'),
+					[
+						$p['name'],
+						SpelakoUtils::buildString($placeholder),
+						$this->core::WEBSITE
+					]
+				);
 			case 'leaderboards':
 			case 'leaderboard':
 			case 'lb':
-				if(!isset($args[2])) {
-					return SpelakoUtils::buildString([
-						'正确用法: /syuu lb <分类>',
-						'"分类" 可以是下列之一:',
-						'- sharp2prot2, s2p2',
-						'- sharp4prot3, s4p3',
-						'- archer, bow',
-						'- nodelay, combo',
-						'- builduhc, buhc',
-						'- sumo',
-						'- finaluhc',
-						'... 欲查看完整列表, 请访问帮助文档.'
-					]);
-				}
-				$lb = $this->fetchPracticeLeaderboards();
-				if(!$lb) return '无法解析来自 SyuuNet 的数据.';
-				$category = $this->getCategoryName($args[2]);
-				$invalidCategory = false;
-				if(!$category) {
-					$category = 'Sharp2Prot2';
-					$invalidCategory = true;
-				}
+				if(!isset($args[2]) || !($category = $this->getCategoryName($args[2]))) return SpelakoUtils::buildString($this->getMessage('leaderboard.info.usage'));
+				if(!($lb = $this->fetchPracticeLeaderboards())) return $this->getMessage('leaderboard.info.failed_to_parse');
 				$placeholder = array();
 				foreach($lb[$category] as $k => $v) {
-					array_push($placeholder, sprintf(
-						'%1$d. %2$s - %3$d',
-						$k + 1,
-						$v['lastknownname'],
-						$v['rankedelo']
+					array_push($placeholder, SpelakoUtils::buildString(
+						$this->getMessage('leaderboard.placeholder'),
+						[
+							$k + 1,
+							$v['lastknownname'],
+							$v['rankedelo']
+						]
 					));
 				}
-				return SpelakoUtils::buildString([
-					$invalidCategory ? '未知的分类, 已跳转至默认分类.' : '',
-					'SyuuNet 的 %1$s 排行榜:',
-					'%2$s', //body
-				], [
-					$category,
-					SpelakoUtils::buildString($placeholder)
-				]);
-			default:
-				return '正确用法: /syuu player <玩家> 或 /syuu lb <分类>';
+				return SpelakoUtils::buildString(
+					$this->getMessage('leaderboard.layout'),
+					[
+						$category,
+						SpelakoUtils::buildString($placeholder),
+						$this->core::WEBSITE
+					]
+				);
 		}
 	}
 

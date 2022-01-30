@@ -10,330 +10,273 @@
  * 
  */
 
-class HypixelCommand {
-	private SpelakoCore $core;
-
-	private $apiKey;
-	private $timezoneOffset;
+class Hypixel {
 	const API_BASE_URL = 'https://api.hypixel.net';
+
 	const SKYBLOCK_SKILLS = ['taming', 'farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting'];
 	const PARKOUR_LOBBY_CODE = ['mainLobby2017', 'Bedwars', 'Skywars', 'SkywarsAug2017', 'ArcadeGames', 'MurderMystery', 'TNT', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'MegaWalls', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
 	const PARKOUR_LOBBY_ATTRIB = ['main', 'bw', 'sw', 'sw2017.8', 'arcade', 'mm', 'tnt', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'mw', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
 	const PARKOUR_LOBBY_NAME = ['主大厅 2017', '起床战争', '空岛战争', '空岛战争 2017.8', '街机游戏', '密室杀手', '掘战游戏', '极限生存冠军', '速战极限生存', '游戏实验室', '建筑大师', '家园世界', 'True PVP Parkour', '超级战墙', '闪电饥饿游戏' ,'战争领主', '星碎英雄', '警匪大战' ,'决斗游戏', '经典游戏', '空岛竞技场', '竞赛殿堂'];
 	const PARKOUR_LOBBY_CHECKPOINT = [2, 3, -1, 3, 6, 3, 3, 2, 1, 4, 3, 7, -1, 3, 0, 2, -1, 4, 3, 2, -1, 3];
 
-	function __construct(SpelakoCore $core) {
-		$this->core = $core;
-		$this->apiKey = $core->getJsonValue($core::CONFIG_FILE, 'hypixel.apikey');
-		$this->timezoneOffset = $core->getJsonValue($core::CONFIG_FILE, 'timezone_offset');
+	function __construct(private SpelakoCore $core, private $config) {
+		$core->loadJsonResource($config->resource);
+	}
+
+	public function getName() {
+		return ['/hypixel', '/hyp'];
 	}
 
 	public function getUsage() {
-		return '/hypixel <玩家> [分类] ...';
-	}
-
-	public function getAliases() {
-		return ['/hyp'];
+		return SpelakoUtils::buildString($this->core->getJsonValue($this->config->resource, 'usage'));
 	}
 
 	public function getDescription() {
-		return '获取指定玩家的 Hypixel 统计信息';
+		return $this->core->getJsonValue($this->config->resource, 'description');
 	}
 
 	public function hasCooldown() {
 		return true;
 	}
 
+	private function getMessage($key) {
+		return $this->core->getJsonValue($this->config->resource, 'messages.'.$key);
+	}
+
 	public function execute(array $args) {
-		if(!isset($args[1])) return SpelakoUtils::buildString([
-			'用法: %s',
-			'目前支持的分类可以是下列之一:',
-			'- recent, r',
-			'- guild, g',
-			'- bedwars, bw',
-			'- skywars, sw',
-			'- murdermystery, mm',
-			'- duels, duel',
-			'- uhc',
-			'- megawalls, mw',
-			'- blitzsg, bsg, hungergames',
-			'- zombies, zb',
-			'- skyblock, sb',
-			'- parkour, p',
-			'更多分类正在开发中...',
-		], [$this->getUsage()]);
-		$p = $this->fetchGeneralStats($args[1]);
-		if($p == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
-		if($p == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
-		if($p == 'ERROR_PLAYER_NOT_FOUND') return '找不到此玩家, 请确认拼写无误.';
-		if($p == 'ERROR_NEED_COOL_DOWN') return '该玩家需要一段冷却时间才能查询, 请一段时间后再试.';
-		
+		if(!isset($args[1])) return $this->getUsage();
+
+		$status = '';
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => $this->config->api_key, 'name' => $args[1]], 300, $status);
+
+		if(!$src) return $this->getMessage('info.request_failed');
+		if(str_contains($status, '429')) return $this->getMessage('info.rate_limit_reached');
+		$result = json_decode($src, true);
+		if($result['success'] != true) return $this->getMessage('info.incomplete_json');
+		if($result['player'] == null) return $this->getMessage('info.player_not_found');
+		$p = $result['player'];
+		// TO FIX: see whether an "unset($result)" is necessary
+
+		$rank = '';
+		if(isset($p['rank']) && $p['rank'] != 'NONE' && $p['rank'] != 'NORMAL') $rank = '['.$p['rank'].'] ';
+		if(isset($p['monthlyPackageRank']) && $p['monthlyPackageRank'] != 'NONE') $rank = '[MVP++] ';
+		if(isset($p['newPackageRank']) && $p['newPackageRank'] != 'NONE') $rank = '['.str_replace('_PLUS', '+', $p['newPackageRank']).'] ';
+
+		$footer = SpelakoUtils::buildString(
+			$this->getMessage('info.learn_more'),
+			[
+				$this->core::WEBSITE
+			]
+		);
+
 		switch($args[2]) {
 			case 'guild':
 			case 'g':
-				$g = $this->fetchGuild($p['uuid']);
-				if($g == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
-				if($g == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
-				if($g == 'ERROR_GUILD_NOT_FOUND') return sprintf(
-					'玩家 %s 没有加入任何公会.',
-					$p['displayname']
+				$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => $this->config->api_key, 'player' => $p['uuid']], 300);
+				if(!$src) return $this->getMessage('info.request_failed');
+				$result = json_decode($src, true);
+				if($result['success'] != true) return $this->getMessage('info.incomplete_json');
+				if($result['guild'] == null) return SpelakoUtils::buildString($this->getMessage('info.guild.guild_not_found'), [$p['displayname']]);
+				$g = $result['guild'];
+
+				return SpelakoUtils::buildString(
+					$this->getMessage('guild.layout'),
+					[
+						$rank.$p['displayname'],
+						$g['name'],
+						SpelakoUtils::formatTime($g['created'], offset: $this->config->timezone_offset),
+						$this->getGuildLevel($g['exp']),
+						$this->getPlainString($g['tag']),
+						count($g['members']),
+						$g['achievements']['ONLINE_PLAYERS']
+					]
 				);
-				return SpelakoUtils::buildString([
-					'%1$s 的公会信息:',
-					'公会名称: %2$s',
-					'创立时间: %3$s',
-					'等级: %4$.3f | 标签: [%5$s]',
-					'成员: %6$d | 最高在线: %7$d'
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					$g['name'],
-					SpelakoUtils::convertTime($g['created'], timezone_offset: $this->timezoneOffset),
-					$this->getGuildLevel($g['exp']),
-					$this->getPlainString($g['tag']),
-					count($g['members']),
-					$g['achievements']['ONLINE_PLAYERS']
-				]);
 			case 'blitzsg':
 			case 'bsg':
 			case 'hungergames':
-				return SpelakoUtils::buildString([
-					'%1$s 的闪电饥饿游戏统计信息:',
-					'游玩次数: %2$s | 硬币: %3$s | 开箱数: %4$s',
-					'击杀: %5$s | 死亡: %6$s | K/D: %7$.3f'
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					number_format($p['stats']['HungerGames']['games_played']),
-					number_format($p['stats']['HungerGames']['coins']),
-					number_format($p['stats']['HungerGames']['chests_opened']),
-					number_format($p['stats']['HungerGames']['kills']),
-					number_format($p['stats']['HungerGames']['deaths']),
-					SpelakoUtils::div($p['stats']['HungerGames']['kills'], $p['stats']['HungerGames']['deaths'])
-				]);
+				return SpelakoUtils::buildString(
+					$this->getMessage('bsg.layout'),
+					[
+						$rank.$p['displayname'],
+						number_format($p['stats']['HungerGames']['games_played']),
+						number_format($p['stats']['HungerGames']['coins']),
+						number_format($p['stats']['HungerGames']['chests_opened']),
+						number_format($p['stats']['HungerGames']['kills']),
+						number_format($p['stats']['HungerGames']['deaths']),
+						SpelakoUtils::div($p['stats']['HungerGames']['kills'], $p['stats']['HungerGames']['deaths'])
+					]
+				);
 			case 'duels':
 			case 'duel':
-				$mode = match($args[3]) { // [keyPrefix, displayName, keyPrefixWinStreak]
-					'classic_duel', 'classic' => ['classic_duel_', '经典决斗', '_classic_duel'],
-					'sw_duel', 'sw' => ['sw_duel_', '空岛战争决斗', '_sw_duel'],
-					'sw_doubles' => ['sw_doubles_', '空岛战争决斗双人决斗', '_sw_doubles'],
-					'bow_duel', 'bow' => ['bow_duel_', '弓箭决斗', '_bow_duel'],
-					'uhc_duel', 'uhc' => ['uhc_duel_', '极限生存决斗', '_uhc_duel'],
-					'uhc_doubles' => ['uhc_doubles_', '极限生存冠军双人决斗', '_uhc_doubles'],
-					'uhc_four' => ['uhc_four_', '极限生存冠军四人决斗', '_uhc_four'],
-					'uhc_meetup' => ['uhc_meetup_', '极限生存冠军死亡竞赛决斗', '_uhc_meetup'],
-					'potion_duel', 'potion', 'nodebuff' => ['potion_duel_', '药水决斗', '_potion_duel'],
-					'combo_duel', 'combo' => ['combo_duel_', '连击决斗', '_combo_duel'],
-					'op_duel', 'op' => ['op_duel_', '高手决斗', '_op_duel'],
-					'op_doubles' => ['op_doubles_', '高手双人决斗', '_op_doubles'],
-					'mw_duel', 'mw' => ['mw_duel_', '超级战墙决斗', '_mw_duel'],
-					'mw_doubles' => ['mw_doubles_', '超级战墙双人决斗', '_mw_doubles'],
-					'sumo_duel', 'sumo' => ['sumo_duel_', '相扑决斗', '_sumo_duel'],
-					'blitz_duel', 'blitz' => ['blitz_duel_', '闪电饥饿游戏决斗', '_blitz_duel'],
-					'bowspleef_duel', 'bowspleef' => ['bowspleef_duel_', '掘一死箭决斗', '_bowspleef_duel'],
-					'bridge_duel', 'bridge' => ['bridge_duel_', '战桥决斗', '_bridge_duel'],
-					'bridge_doubles' => ['bridge_doubles_', '战桥双人决斗', '_bridge_doubles'],
-					'bridge_four' => ['bridge_four_', '战桥四人决斗', '_bridge_four'],
-					'bridge_2v2v2v2' => ['bridge_2v2v2v2_', '战桥 2v2v2v2 决斗', '_bridge_2v2v2v2'],
-					'bridge_3v3v3v3' => ['bridge_3v3v3v3_', '战桥 4v4v4v4 决斗', '_bridge_3v3v3v3'],
-					null => ['', '全局'],
-					default => 'ERROR'
-				};
-				if($mode == 'ERROR') return SpelakoUtils::buildString([
-					'未知的模式.',
-					'目前支持的模式可以是下列之一:',
-					'- classic_duel, classic', 
-					'- sw_duel, sw', 
-					'- sw_doubles', 
-					'- bow_duel, bow', 
-					'- uhc_duel, uhc', 
-					'- uhc_doubles', 
-					'- uhc_four', 
-					'- uhc_meetup', 
-					'- potion_duel, potion, nodebuff', 
-					'- combo_duel, combo', 
-					'- op_duel, op', 
-					'- op_doubles', 
-					'- mw_duel, mw', 
-					'- mw_doubles', 
-					'- sumo_duel, sumo', 
-					'- blitz_duel, blitz', 
-					'- bowspleef_duel, bowspleef', 
-					'- bridge_duel, bridge', 
-					'- bridge_doubles', 
-					'- bridge_four', 
-					'- bridge_2v2v2v2', 
-					'- bridge_3v3v3v3'
-				]);
-				return SpelakoUtils::buildString([
-					'%1$s 的决斗游戏%2$s统计信息:',
-					$mode[0] == '' ? '硬币: %3$s | Ping 偏好：%4$s' : '',
-					'胜场: %5$s | 败场: %6$s | W/L: %7$.3f',
-					($p['stats']['Duels']['best_overall_winstreak'] === null && $p['stats']['Duels'][$mode[0].'wins'] != 0 ? '该玩家在 API 设置中阻止获取连胜信息' :'当前连胜: %8$s | 最高连胜: %9$s').' | 造成伤害: %10$s',
-					'回合数: %11$s'. ($mode[0] == null ? ' | 平局数: %12$s ' : ''),
-					(strpos($mode[0], 'uhc') === true || strpos($mode[0], 'combo') === true || $mode[0] == null ? '食用金苹果: %13$s | ' : '').'回复生命: %14$s'.((strpos($mode[0], 'bridge') === true || strpos($mode[0], 'uhc') === true || strpos($mode[0], 'mw') === true || $mode[0] == null) ? ' | 方块放置: %15$s ':''),
-					'击杀: %16$s | 死亡: %17$s | K/D: %18$.3f',
-					(strpos($mode[0], 'sumo') !== true && strpos($mode[0], 'classic') !== true && strpos($mode[0], 'potion') !== true) ? '弓箭 - 射击: %19$s | 命中: %20$s | 命中率: %21$.1f%%' : '',
-					'近战 - 出击: %22$s | 命中: %23$s | 命中率: %24$.1f%%',
-					'此命令详细用法可在此处查看: %25$s/#help'
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					$mode[1],
-					number_format($p['stats']['Duels']['coins']),
-					number_format($p['stats']['Duels']['pingPreference']),
-					number_format($p['stats']['Duels'][$mode[0].'wins']),
-					number_format($p['stats']['Duels'][$mode[0].'losses']),
-					SpelakoUtils::div($p['stats']['Duels'][$mode[0].'wins'], $p['stats']['Duels'][$mode[0].'losses']),
-					number_format($mode[0] == null ? $p['stats']['Duels']['current_winstreak'] : $p['stats']['Duels']['current_winstreak_mode'.$mode[2]]),
-					number_format($mode[0] == null ? $p['stats']['Duels']['best_overall_winstreak'] : $p['stats']['Duels']['best_winstreak_mode'.$mode[2]]),
-					number_format($p['stats']['Duels'][$mode[0].'damage_dealt']),
-					number_format($p['stats']['Duels'][$mode[0].'rounds_played']),
-					number_format($p['stats']['Duels'][$mode[0].'games_played_duels'] - $p['stats']['Duels'][$mode[0].'wins'] - $p['stats']['Duels'][$mode[0].'losses']),
-					number_format($p['stats']['Duels'][$mode[0].'golden_apples_eaten']),
-					number_format($p['stats']['Duels'][$mode[0].'health_regenerated']),
-					number_format($p['stats']['Duels'][$mode[0].'blocks_placed']),
-					number_format($p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'kills']),
-					number_format($p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'deaths']),
-					SpelakoUtils::div($p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'kills'], $p['stats']['Duels'][$mode[0].(strpos($mode[0], 'bridge') !== false ? 'bridge_' : '').'deaths']),
-					number_format($p['stats']['Duels'][$mode[0].'bow_shots']),
-					number_format($p['stats']['Duels'][$mode[0].'bow_hits']),
-					100 * SpelakoUtils::div($p['stats']['Duels'][$mode[0].'bow_hits'], $p['stats']['Duels'][$mode[0].'bow_hits'] + $p['stats']['Duels'][$mode[0].'bow_shots']),
-					number_format($p['stats']['Duels'][$mode[0].'melee_swings']),
-					number_format($p['stats']['Duels'][$mode[0].'melee_hits']),
-					100 * SpelakoUtils::div($p['stats']['Duels'][$mode[0].'melee_hits'], $p['stats']['Duels'][$mode[0].'melee_hits'] + $p['stats']['Duels'][$mode[0].'melee_swings']),
-					SpelakoCore::INFO['link'],
-				]);
+				if(!isset($args[3])) {
+					$keyAsPrefix = $keyAsSuffix = '';
+					$modeName = $this->getMessage('modes.general');
+				}
+				else if(
+					$modeName = $this->getMessage('modes.duels_'.$args[3])
+					|| $modeName = $this->getMessage('modes.duels_'.($args[3] .= '_duel'))
+				) {
+					$keyAsPrefix = $args[3].'_';
+					$keyAsSuffix = '_'.$args[3];
+				}
+				else return SpelakoUtils::buildString($this->getMessage('duels.info.usage'), [$p['displayname']]);
+
+				return SpelakoUtils::buildString(
+					$this->getMessage('duels.layout'),
+					[
+						$rank.$p['displayname'],
+						isset($args[3]) ? $this->getMessage('modes.duels'.$keyAsSuffix) : $this->getMessage('modes.general'),
+						isset($args[3]) ? '' : SpelakoUtils::buildString(
+							$this->getMessage('duels.placeholders.general_stats'),
+							[
+								number_format($p['stats']['Duels']['coins']),
+								number_format($p['stats']['Duels']['pingPreference']),
+								number_format($p['stats']['Duels'][$keyAsPrefix.'games_played_duels'] - $p['stats']['Duels'][$keyAsPrefix.'wins'] - $p['stats']['Duels'][$keyAsPrefix.'losses']),
+							]
+						),
+						$p['stats']['Duels'][$keyAsPrefix.'rounds_played'],
+						number_format($p['stats']['Duels'][$keyAsPrefix.'wins']),
+						number_format($p['stats']['Duels'][$keyAsPrefix.'losses']),
+						SpelakoUtils::div($p['stats']['Duels'][$keyAsPrefix.'wins'], $p['stats']['Duels'][$keyAsPrefix.'losses']),
+						$p['stats']['Duels']['best_overall_winstreak'] === null && $p['stats']['Duels'][$keyAsPrefix.'wins'] != 0 ? $this->getMessage('duels.placeholders.win_strikes_no_access') : SpelakoUtils::buildString(
+							$this->getMessage('duels.placeholders.win_strikes'),
+							[
+								number_format(isset($args[3]) ? $p['stats']['Duels']['current_winstreak_mode'.$keyAsSuffix] : $p['stats']['Duels']['current_winstreak']),
+								number_format(isset($args[3]) ? $p['stats']['Duels']['best_winstreak_mode'.$keyAsSuffix] : $p['stats']['Duels']['best_overall_winstreak'])
+							]
+						),
+						number_format($p['stats']['Duels'][$keyAsPrefix.(str_contains($keyAsPrefix, 'bridge') ? 'bridge_kills' : 'kills')]), // Hypixel API is messy
+						number_format($p['stats']['Duels'][$keyAsPrefix.(str_contains($keyAsPrefix, 'bridge') ? 'bridge_deaths' : 'deaths')]),
+						SpelakoUtils::div($p['stats']['Duels'][$keyAsPrefix.(str_contains($keyAsPrefix, 'bridge') ? 'bridge_kills' : 'kills')], $p['stats']['Duels'][$keyAsPrefix.(str_contains($keyAsPrefix, 'bridge') ? 'bridge_deaths' : 'deaths')]),
+						(str_contains($keyAsPrefix, 'sumo') || str_contains($keyAsPrefix, 'classics') || str_contains($keyAsPrefix, 'potion')) ? '' : SpelakoUtils::buildString(
+							$this->getMessage('duels.placeholders.bow_stats'),
+							[
+								number_format($p['stats']['Duels'][$keyAsPrefix.'bow_shots']),
+								number_format($p['stats']['Duels'][$keyAsPrefix.'bow_hits']),
+								100 * SpelakoUtils::div($p['stats']['Duels'][$keyAsPrefix.'bow_hits'], $p['stats']['Duels'][$keyAsPrefix.'bow_hits'] + $p['stats']['Duels'][$keyAsPrefix.'bow_shots']),
+							]
+						),
+						number_format($p['stats']['Duels'][$keyAsPrefix.'melee_swings']),
+						number_format($p['stats']['Duels'][$keyAsPrefix.'melee_hits']),
+						100 * SpelakoUtils::div($p['stats']['Duels'][$keyAsPrefix.'melee_hits'], $p['stats']['Duels'][$keyAsPrefix.'melee_hits'] + $p['stats']['Duels'][$keyAsPrefix.'melee_swings']),
+						(isset($args[3]) || !str_contains($keyAsPrefix, 'uhc') || !str_contains($keyAsPrefix, 'combo')) ? '' : SpelakoUtils::buildString(
+							$this->getMessage('duels.placeholders.gapples_eaten'),
+							[
+								number_format($p['stats']['Duels'][$keyAsPrefix.'golden_apples_eaten']),
+							]
+						),
+						number_format($p['stats']['Duels'][$keyAsPrefix.'health_regenerated']),
+						number_format($p['stats']['Duels'][$keyAsPrefix.'damage_dealt']),
+						(isset($args[3]) || !str_contains($keyAsPrefix, 'bridge') || !str_contains($keyAsPrefix, 'uhc') || !str_contains($keyAsPrefix, 'mw')) ? '' : SpelakoUtils::buildString(
+							$this->getMessage('duels.placeholders.blocks_placed'),
+							[
+								number_format($p['stats']['Duels'][$keyAsPrefix.'blocks_placed']),
+							]
+						),
+						$footer
+					]
+				);
 			case 'uhc':
-				return SpelakoUtils::buildString([
-					'%1$s 的极限生存冠军统计信息:',
-					'分数: %2$s | 硬币: %3$s | 胜场: %4$s',
-					'击杀: %5$s | 死亡: %6$s | K/D: %7$.3f'
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					number_format($p['stats']['UHC']['score']),
-					number_format($p['stats']['UHC']['coins']),
-					number_format($p['stats']['UHC']['wins']),
-					number_format($p['stats']['UHC']['kills']),
-					number_format($p['stats']['UHC']['deaths']),
-					SpelakoUtils::div($p['stats']['UHC']['kills'], $p['stats']['UHC']['deaths'])
-				]);
+				return SpelakoUtils::buildString(
+					$this->getMessage('uhc.layout'),
+					[
+						$rank.$p['displayname'],
+						number_format($p['stats']['UHC']['score']),
+						number_format($p['stats']['UHC']['coins']),
+						number_format($p['stats']['UHC']['wins']),
+						number_format($p['stats']['UHC']['kills']),
+						number_format($p['stats']['UHC']['deaths']),
+						SpelakoUtils::div($p['stats']['UHC']['kills'], $p['stats']['UHC']['deaths'])
+					]
+				);
 			case 'megawalls':
 			case 'mw':
-				return SpelakoUtils::buildString([
-					'%1$s 的超级战墙统计信息:',
-					'凋零伤害: %2$s | 职业: %3$s | 硬币: %4$s',
-					'击杀: %5$s | 助攻: %6$s | 死亡: %7$s | K/D: %8$.3f',
-					'终杀: %9$s | 终助: %10$s | 终死: %11$s | FKDR: %12$.3f',
-					'胜场: %13$s | 败场: %14$s | W/L: %15$.3f'
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					number_format($p['stats']['Walls3']['wither_damage']),
-					$p['stats']['Walls3']['chosen_class'],
-					number_format($p['stats']['Walls3']['coins']),
-					number_format($p['stats']['Walls3']['kills']),
-					number_format($p['stats']['Walls3']['assists']),
-					number_format($p['stats']['Walls3']['deaths']),
-					SpelakoUtils::div($p['stats']['Walls3']['kills'], $p['stats']['Walls3']['deaths']),
-					number_format($p['stats']['Walls3']['final_kills']),
-					number_format($p['stats']['Walls3']['final_assists']),
-					number_format($p['stats']['Walls3']['final_deaths']),
-					SpelakoUtils::div($p['stats']['Walls3']['final_kills'], $p['stats']['Walls3']['final_deaths']),
-					number_format($p['stats']['Walls3']['wins']),
-					number_format($p['stats']['Walls3']['losses']),
-					SpelakoUtils::div($p['stats']['Walls3']['wins'], $p['stats']['Walls3']['losses'])
-				]);
+				return SpelakoUtils::buildString(
+					$this->getMessage('mw.layout'),
+					[
+						$rank.$p['displayname'],
+						number_format($p['stats']['Walls3']['wither_damage']),
+						$p['stats']['Walls3']['chosen_class'],
+						number_format($p['stats']['Walls3']['coins']),
+						number_format($p['stats']['Walls3']['kills']),
+						number_format($p['stats']['Walls3']['assists']),
+						number_format($p['stats']['Walls3']['deaths']),
+						SpelakoUtils::div($p['stats']['Walls3']['kills'], $p['stats']['Walls3']['deaths']),
+						number_format($p['stats']['Walls3']['final_kills']),
+						number_format($p['stats']['Walls3']['final_assists']),
+						number_format($p['stats']['Walls3']['final_deaths']),
+						SpelakoUtils::div($p['stats']['Walls3']['final_kills'], $p['stats']['Walls3']['final_deaths']),
+						number_format($p['stats']['Walls3']['wins']),
+						number_format($p['stats']['Walls3']['losses']),
+						SpelakoUtils::div($p['stats']['Walls3']['wins'], $p['stats']['Walls3']['losses'])
+					]
+				);
 			case 'skywars':
 			case 'sw':
-				return SpelakoUtils::buildString([
-					'%1$s 的空岛战争统计信息:',
-					'等级: %2$s | 硬币: %3$s | 助攻: %4$s',
-					'击杀: %5$s | 死亡: %6$s | K/D: %7$.3f',
-					'胜场: %8$s | 败场: %9$s | W/L: %10$.3f',
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					$this->getPlainString($p['stats']['SkyWars']['levelFormatted']),
-					number_format($p['stats']['SkyWars']['coins']),
-					number_format($p['stats']['SkyWars']['assists']),
-					number_format($p['stats']['SkyWars']['kills']),
-					number_format($p['stats']['SkyWars']['deaths']),
-					SpelakoUtils::div($p['stats']['SkyWars']['kills'], $p['stats']['SkyWars']['deaths']),
-					number_format($p['stats']['SkyWars']['wins']),
-					number_format($p['stats']['SkyWars']['losses']),
-					SpelakoUtils::div($p['stats']['SkyWars']['wins'], $p['stats']['SkyWars']['losses'])
-				]);
+				return SpelakoUtils::buildString(
+					$this->getMessage('sw.layout'),
+					[
+						$rank.$p['displayname'],
+						$this->getPlainString($p['stats']['SkyWars']['levelFormatted']),
+						number_format($p['stats']['SkyWars']['coins']),
+						number_format($p['stats']['SkyWars']['assists']),
+						number_format($p['stats']['SkyWars']['kills']),
+						number_format($p['stats']['SkyWars']['deaths']),
+						SpelakoUtils::div($p['stats']['SkyWars']['kills'], $p['stats']['SkyWars']['deaths']),
+						number_format($p['stats']['SkyWars']['wins']),
+						number_format($p['stats']['SkyWars']['losses']),
+						SpelakoUtils::div($p['stats']['SkyWars']['wins'], $p['stats']['SkyWars']['losses'])
+					]
+				);
 			case 'bedwars':
 			case 'bw':
-				$mode = match($args[3]) { // [keyPrefix, displayName]
-					'eight_one', '8_1', 'solo' => ['eight_one_', '单挑模式'],
-					'eight_two', '8_2', 'doubles', => ['eight_two_', '双人模式'],
-					'four_three', '4_3', '3v3v3v3' => ['four_three_', ' 3v3v3v3 模式'],
-					'four_four', '4_4', '4v4v4v4' => ['four_four_', ' 4v4v4v4 模式'],
-					'two_four', '2_4', ' 4v4' => ['two_four_', '4v4 模式'],
-					'eight_two_rush', '8_2_rush', 'doubles_rush' => ['eight_two_rush_', '双人疾速模式'],
-					'four_four_rush', '4v4v4v4_rush' => ['four_four_rush_', '4v4v4v4 疾速模式'],
-					'eight_two_ultimate', 'eight_two_ult', '8_2_ult', 'doubles_ultimate', 'double_ult' => ['eight_two_ultimate_', '双人超能力模式'],
-					'four_four_ultimate', 'four_four_ult','4_4_ult', '4v4v4v4_ultimate', '4v4v4v4_ult' => ['four_four_ultimate_', ' 4v4v4v4 超能力模式'],
-					'castle' => ['castle_', '40v40 城池攻防战模式'],
-					'eight_two_voidless', 'eight_two_void', '8_2_void', 'doubles_voidless', 'double_void' => ['eight_two_voidless_', '双人无虚空模式'],
-					'four_four_voidless', 'four_four_void','4_4_void', '4v4v4v4_voidless', '4v4v4v4_void' => ['four_four_voidless_', ' 4v4v4v4 无虚空模式'],
-					'eight_two_armed', '8_2_armed', 'doubles_armed' => ['eight_two_armed_', '双人枪械模式'],
-					'four_four_armed', '4_4_armed', '4v4v4v4_armed' => ['four_four_armed_', ' 4v4v4v4 枪械模式'],
-					'eight_two_lucky', '8_2_lucky', 'doubles_lucky', 'duo_lucky' => ['eight_two_lucky_', '双人幸运方块模式'],
-					'four_four_lucky', '4_4_lucky', '4v4v4v4_lucky' => ['four_four_lucky_', ' 4v4v4v4 幸运方块模式'],
-					null => ['', '全局'],
-					default => 'ERROR'
-				};
-				if($mode == 'ERROR') return SpelakoUtils::buildString([
-					'未知的模式.',
-					'目前支持的模式可以是下列之一:',
-					'- eight_one, 8_1, solo',
-					'- eight_two, 8_2, doubles',
-					'- four_three, 4_3, 3v3v3v3',
-					'- four_four, 4_4, 4v4v4v4',
-					'- two_four, 2_4, 4v4',
-					'- eight_two_rush, 8_2_rush, doubles_rush',
-					'- four_four_rush, 4v4v4v4_rush',
-					'- eight_two_ultimate, eight_two_ult, 8_2_ult, doubles_ultimate, doubles_ult',
-					'- four_four_ultimate, four_four_ult, 4_4_ult, 4v4v4v4_ultimate, 4v4v4v4_ult',
-					'- castle',
-					'- eight_two_voidless, eight_two_void, 8_2_void, doubles_voidless, double_void',
-					'- four_four_voidless, four_four_void, 4_4_void, 4v4v4v4_voidless, 4v4v4v4_void',
-					'- eight_two_armed, 8_2_armed, doubles_armed',
-					'- four_four_armed, 4_4_armed, 4v4v4v4_armed',
-					'- eight_two_lucky, 8_2_lucky, doubles_lucky',
-					'- four_four_lucky, 4_4_lucky, 4v4v4v4_lucky'
-				]);
-				return SpelakoUtils::buildString([
-					'%1$s 的起床战争%2$s统计信息:',
-					$mode[0] == '' ? '等级: %3$s | 硬币: %4$s' : '',
-					'拆床: %5$s | 被拆床: %6$s | 连胜: %7$s',
-					'胜场: %8$s | 败场: %9$s | W/L: %10$.3f',
-					'击杀: %11$s | 死亡: %12$s | K/D: %13$.3f',
-					'终杀: %14$s | 终死: %15$s | FKDR: %16$.3f',
-					'铁锭收集: %17$s | 金锭收集: %18$s',
-					'钻石收集: %19$s | 绿宝石收集: %20$s',
-					'此命令详细用法可在此处查看: %21$s/#help'
-				], [
-					$this->getNetworkRank($p).$p['displayname'],
-					$mode[1],
-					number_format($p['achievements']['bedwars_level']),
-					number_format($p['stats']['Bedwars']['coins']),
-					number_format($p['stats']['Bedwars'][$mode[0].'beds_broken_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'beds_lost_bedwars']),
-					$p['stats']['Bedwars'][$mode[0].'winstreak'] === null && $p['stats']['Bedwars'][$mode[0].'wins_bedwars'] != 0 ? '玩家阻止获取' : number_format($p['stats']['Bedwars'][$mode[0].'winstreak']),
-					number_format($p['stats']['Bedwars'][$mode[0].'wins_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'losses_bedwars']),
-					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'wins_bedwars'], $p['stats']['Bedwars'][$mode[0].'losses_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'kills_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'deaths_bedwars']),
-					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'kills_bedwars'], $p['stats']['Bedwars'][$mode[0].'deaths_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'final_kills_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'final_deaths_bedwars']),
-					SpelakoUtils::div($p['stats']['Bedwars'][$mode[0].'final_kills_bedwars'], $p['stats']['Bedwars'][$mode[0].'final_deaths_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'iron_resources_collected_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'gold_resources_collected_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'diamond_resources_collected_bedwars']),
-					number_format($p['stats']['Bedwars'][$mode[0].'emerald_resources_collected_bedwars']),
-					SpelakoCore::INFO['link']
-				]);
+				if(!isset($args[3])) {
+					$keyAsPrefix = '';
+					$modeName = $this->getMessage('modes.general');
+				}
+				else if(
+					($modeName = $this->getMessage('modes.bedwars_'.$args[3]))
+					|| $modeName = $this->getMessage(
+						'modes.bedwars_'.($args[3] = str_replace(
+							['solo', 'doubles', '3v3v3v3', '4v4v4v4', '4v4', '1', '2', '3', '4', '8'],
+							['eight_one', 'eight_two', 'four_three', 'four_four', 'two_four', 'one', 'two', 'three', 'four', 'eight'],
+							$args[3]
+						))
+					)
+				) $keyAsPrefix = $args[3].'_';
+				else return SpelakoUtils::buildString($this->getMessage('bw.info.usage'), [$p['displayname']]);
+
+				return SpelakoUtils::buildString(
+					$this->getMessage('bw.layout'),
+					[
+						$rank.$p['displayname'],
+						$modeName,
+						isset($args[3]) ? '' : SpelakoUtils::buildString(
+							$this->getMessage('bw.placeholders.general_stats'),
+							[
+								number_format($p['achievements']['bedwars_level']),
+								number_format($p['stats']['Bedwars']['coins']),
+							]
+						),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'beds_broken_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'beds_lost_bedwars']),
+						$p['stats']['Bedwars'][$keyAsPrefix.'winstreak'] === null && $p['stats']['Bedwars'][$keyAsPrefix.'wins_bedwars'] != 0 ? $this->getMessage('bw.placeholders.win_strikes_no_access') : number_format($p['stats']['Bedwars'][$keyAsPrefix.'winstreak']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'wins_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'losses_bedwars']),
+						SpelakoUtils::div($p['stats']['Bedwars'][$keyAsPrefix.'wins_bedwars'], $p['stats']['Bedwars'][$keyAsPrefix.'losses_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'kills_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'deaths_bedwars']),
+						SpelakoUtils::div($p['stats']['Bedwars'][$keyAsPrefix.'kills_bedwars'], $p['stats']['Bedwars'][$keyAsPrefix.'deaths_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'final_kills_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'final_deaths_bedwars']),
+						SpelakoUtils::div($p['stats']['Bedwars'][$keyAsPrefix.'final_kills_bedwars'], $p['stats']['Bedwars'][$keyAsPrefix.'final_deaths_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'iron_resources_collected_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'gold_resources_collected_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'diamond_resources_collected_bedwars']),
+						number_format($p['stats']['Bedwars'][$keyAsPrefix.'emerald_resources_collected_bedwars']),
+						$footer
+					]
+				);
 			case 'murdermystery':
 			case 'mm':
 				if($args[3][0] >= 1 && $args[3][0] <= 4 && $args[3][1] == null) $modeCode = $args[3];
@@ -359,7 +302,7 @@ class HypixelCommand {
 						'%2$s/#help',
 					],[
 						$p['displayname'],
-						SpelakoCore::INFO['link']
+						$footer
 					]);
 				}
 
@@ -410,7 +353,7 @@ class HypixelCommand {
 					($mode[0] == '' || $mode[0] == '_MURDER_INFECTION') ? '幸存者总存活: %9$s | 幸存者最久存活: %10$ss' : '',
 					'此命令详细用法可在此处查看: %24$s/#help'
 				], [
-					$this->getNetworkRank($p).$p['displayname'],
+					$rank.$p['displayname'],
 					$this->getModeName($mode[1]),
 					number_format($p['stats']['MurderMystery']['coins']),
 					number_format($p['stats']['MurderMystery']['murderer_chance']),
@@ -418,7 +361,7 @@ class HypixelCommand {
 					number_format($p['stats']['MurderMystery']['wins'.$map[0].$mode[0]]),
 					(SpelakoUtils::div($p['stats']['MurderMystery']['wins'.$map[0].$mode[0]]*100, $p['stats']['MurderMystery']['games'.$map[0].$mode[0]])),
 					number_format($p['stats']['MurderMystery']['coins_pickedup'.$map[0].$mode[0]]),
-					($survived_time = $p['stats']['MurderMystery']['total_time_survived_seconds'.$map[0].$mode[0]]*1000) != 0 ? SpelakoUtils::convertTime ($survived_time, false, 'i:s') : '00:00',
+					($survived_time = $p['stats']['MurderMystery']['total_time_survived_seconds'.$map[0].$mode[0]]*1000) != 0 ? SpelakoUtils::formatTime($survived_time, false, 'i:s') : '00:00',
 					number_format($p['stats']['MurderMystery']['longest_time_as_survivor_seconds'.$map[0].$mode[0]]),
 					null, //number_format($p['stats']['MurderMystery']['coins_pickedup'.$map[0].$mode[0]]),
 					number_format($p['stats']['MurderMystery']['detective_wins'.$map[0].$mode[0]]),
@@ -433,7 +376,7 @@ class HypixelCommand {
 					number_format($p['stats']['MurderMystery']['was_hero'.$map[0].$mode[0]]),
 					number_format($p['stats']['MurderMystery']['quickest_detective_win_time_seconds'.$map[0].$mode[0]]),
 					number_format($p['stats']['MurderMystery']['quickest_murderer_win_time_seconds'.$map[0].$mode[0]]),
-					SpelakoCore::INFO['link'],
+					$footer,
 					$this->getMapName($map[1]),
 					number_format($p['stats']['MurderMystery']['kills_as_infected'.$map[0].$mode[0]]),
 					number_format($p['stats']['MurderMystery']['kills_as_survivor'.$map[0].$mode[0]])
@@ -514,7 +457,7 @@ class HypixelCommand {
 					!$map['keySuffix'] ? '命中率: %23$.1f%% | 爆头率 %24$.1f%%' : ($map['mapIndex'] == 2 || !$difficulty['keySuffix'] ? '%25$s击杀: %26$s'.($map['mapIndex'] == 2 ? ' | 世界毁灭者击杀: %27$s' : '') : ''),
 					'此命令详细用法可在此处查看: %28$s/#help'
 				], [
-					$this->getNetworkRank($p).$p['displayname'],
+					$rank.$p['displayname'],
 					$map['displayName'],
 					$difficulty['displayName'],
 					number_format($p['stats']['Arcade']['total_rounds_survived_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
@@ -526,9 +469,9 @@ class HypixelCommand {
 					number_format($p['stats']['Arcade']['windows_repaired_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
 					number_format($p['stats']['Arcade']['times_knocked_down_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
 					number_format($p['stats']['Arcade']['deaths_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					SpelakoUtils::convertTime($p['stats']['Arcade']['fastest_time_10_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
-					SpelakoUtils::convertTime($p['stats']['Arcade']['fastest_time_20_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
-					SpelakoUtils::convertTime($p['stats']['Arcade']['fastest_time_30_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
+					SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_10_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
+					SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_20_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
+					SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_30_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
 					number_format($p['stats']['Arcade']['bullets_shot_zombies']),
 					number_format($p['stats']['Arcade']['bullets_hit_zombies']),
 					number_format($p['stats']['Arcade']['headshots_zombies']),
@@ -541,7 +484,7 @@ class HypixelCommand {
 					$map['bossDisplayNames'][2],
 					number_format($p['stats']['Arcade'][$map['bossKeys'][2].'_zombie_kills_zombies']),
 					$map['mapIndex'] == 2 ? number_format($p['stats']['Arcade']['world_ender_zombie_kills_zombies']) : '',
-					SpelakoCore::INFO['link']
+					$footer
 				]);
 			case 'skyblock':
 			case 'sb':
@@ -594,7 +537,7 @@ class HypixelCommand {
 									$item['item_name'],
 									$item['tier'],
 									number_format($item['starting_bid']),
-									SpelakoUtils::convertTime($item['end'], timezone_offset: $this->timezoneOffset),
+									SpelakoUtils::formatTime($item['end']),
 									$item['claimed_bidders'] ? '已被购买' : (time() < $item['end'] / 1000 ? '进行中' : '已结束, 无买主')
 								])
 								: SpelakoUtils::buildString([
@@ -610,7 +553,7 @@ class HypixelCommand {
 									number_format($item['highest_bid_amount']),
 									count($item['bids']),
 									number_format($item['starting_bid']),
-									SpelakoUtils::convertTime($item['end'], timezone_offset: $this->timezoneOffset),
+									SpelakoUtils::formatTime($item['end']),
 									time() < $item['end'] / 1000 ? '进行中' : '已结束'
 								])
 							);
@@ -621,7 +564,7 @@ class HypixelCommand {
 							'当前展示 %4$d/%5$d 页.',
 							$totPages > 1 ?'使用 /hyp %6$s sb a %7$s <页数> 来查看具体页数的拍卖信息.' : '', 
 							], [
-								$this->getNetworkRank($p).$p['displayname'],
+								$rank.$p['displayname'],
 								$profiles[$profile_id]['cute_name'],
 								SpelakoUtils::buildString($placeholder),
 								$curPage,
@@ -683,7 +626,7 @@ class HypixelCommand {
 							'附魔: %9$d | 酿造: %10$d',
 							$profileAccessible ? '木工: %11$d | 符文合成: %12$d' : ( $profile == -1 ? '注意: 访问该玩家技能 API 时超时或失败, ' : '注意: 该玩家技能信息被玩家在 API 设置中被阻止, ').'已显示为跨存档的最高等级.'
 						], [
-							$this->getNetworkRank($p).$p['displayname'],
+							$rank.$p['displayname'],
 							$profiles[$profile_id]['cute_name'],
 							$skillLevels['taming'],
 							$skillLevels['farming'],
@@ -714,7 +657,7 @@ class HypixelCommand {
 							'- skills, skill, sk, s',
 							'- auctions, auction, au, a'
 						], [
-							$this->getNetworkRank($p).$p['displayname'],
+							$rank.$p['displayname'],
 							count($profiles),
 							SpelakoUtils::buildString($placeholder),
 							$p['displayname']
@@ -748,8 +691,8 @@ class HypixelCommand {
 						$this->getGameName($r[$i]['gameType']),
 						$this->getModeName($r[$i]['mode']),
 						($statusMap = $this->getMapName($r[$i]['map'])) != '' ? $statusMap.'地图' : '',
-						SpelakoUtils::convertTime($r[$i]['date'], format:'Y-m-d H:i:s', timezone_offset: $this->timezoneOffset),
-						$r[$i]['ended'] ? SpelakoUtils::convertTime($r[$i]['ended'], format:'Y-m-d H:i:s', timezone_offset: $this->timezoneOffset) : ''
+						SpelakoUtils::formatTime($r[$i]['date'], format:'Y-m-d H:i:s'),
+						$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], format:'Y-m-d H:i:s') : ''
 					]));
 				}
 				return SpelakoUtils::buildString([
@@ -758,7 +701,7 @@ class HypixelCommand {
 					'当前展示 %3$d/%4$d 页.',
 					$totPages > 1 ? '使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.' : ''
 				], [
-					$this->getNetworkRank($p).$p['displayname'],
+					$rank.$p['displayname'],
 					SpelakoUtils::buildString($placeholder),
 					$curPage,
 					$totPages,
@@ -775,7 +718,7 @@ class HypixelCommand {
 						], [
 							$i + 1,
 							self::PARKOUR_LOBBY_NAME[$i],
-							($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未' . ($p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$i]][0] != null ? '完全' : '') . '完成'
+							($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$i]][0]['timeTook']) != null ? SpelakoUtils::formatTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未' . ($p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$i]][0] != null ? '完全' : '') . '完成'
 						]));
 					}
 					return SpelakoUtils::buildString([
@@ -783,7 +726,7 @@ class HypixelCommand {
 						'%2$s',
 						'使用 /hyp %3$s p <序号> 来查看包括每个存档点的纪录和总纪录的创立时间的详细信息.'
 					], [
-						$this->getNetworkRank($p).$p['displayname'],
+						$rank.$p['displayname'],
 						SpelakoUtils::buildString($placeholder),
 						$p['displayname']
 					]);
@@ -798,7 +741,7 @@ class HypixelCommand {
 						'%1$d. %2$s',
 						], [
 							$i+1,
-							$checkPointTime != null ? SpelakoUtils::convertTime($checkPointTime, false, 'i:s').'.'. sprintf('%03s', $checkPointTime % 1000) : '未完成'
+							$checkPointTime != null ? SpelakoUtils::formatTime($checkPointTime, false, 'i:s').'.'. sprintf('%03s', $checkPointTime % 1000) : '未完成'
 						]));
 					}
 					return SpelakoUtils::buildString([
@@ -807,11 +750,11 @@ class HypixelCommand {
 						'完成跑酷用时: %4$s',
 						$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook'] != null ? '记录创建于: %5$s' : null
 					], [
-						$this->getNetworkRank($p).$p['displayname'],
+						$rank.$p['displayname'],
 						self::PARKOUR_LOBBY_NAME[$lobby],
 						SpelakoUtils::buildString($placeholder),
-						($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']) != null ? SpelakoUtils::convertTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未完成' ,
-						SpelakoUtils::convertTime($p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']+$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeStart'], format:'Y-m-d H:i:s', timezone_offset: $this->timezoneOffset)
+						($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']) != null ? SpelakoUtils::formatTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未完成' ,
+						SpelakoUtils::formatTime($p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']+$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeStart'], format:'Y-m-d H:i:s')
 					]);
 				}
 				else {
@@ -869,7 +812,7 @@ class HypixelCommand {
 					$p['lastLogin'] == 0 ? '该玩家在 API 设置中阻止了在线状态请求.' : '',
 					'此命令详细用法可在此处查看: %16$s/#help'
 				], [
-					$this->getNetworkRank($p).$p['displayname'],
+					$rank.$p['displayname'],
 					$this->getNetworkLevel($p['networkExp']),
 					number_format($p['karma']),
 					number_format($p['achievementPoints']),
@@ -878,72 +821,58 @@ class HypixelCommand {
 					number_format($p['achievements']['general_challenger']),
 					number_format($p['achievements']['general_coins']),
 					$this->getGameName($p['mostRecentGameType']),
-					SpelakoUtils::convertTime($p['firstLogin'], format:'Y-m-d H:i:s', timezone_offset: $this->timezoneOffset),
-					SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: $this->timezoneOffset),
-					$online ? SpelakoUtils::convertTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : SpelakoUtils::convertTime($p['lastLogin'], format:'Y-m-d H:i:s', timezone_offset: $this->timezoneOffset),
+					SpelakoUtils::formatTime($p['firstLogin'], format:'Y-m-d H:i:s'),
+					SpelakoUtils::formatTime($p['lastLogin'], format:'Y-m-d H:i:s'),
+					$online ? SpelakoUtils::formatTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s') : SpelakoUtils::formatTime($p['lastLogin'], format:'Y-m-d H:i:s'),
 					$statusAvailable ? $this->getGameName($s['gameType']) : '',
 					$statusAvailable ? $this->getModeName($s['mode']) : '',
 					$statusAvailable ? (($statusMap = $this->getMapName($s['map'])) != '' ? $statusMap.'地图' : '') : '',
-					SpelakoCore::INFO['link'],
+					$footer,
 					$this->getLanguageName($p['userLanguage'])
 				]);
 		}
 	}
 
 	private function fetchGeneralStats($player) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => $this->apiKey, 'name' => $player], 300);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => $this->config->api_key, 'name' => $player], 300, $status);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(($src) == -1) return "ERROR_NEED_COOL_DOWN";
+		if(str_contains($status, '429')) return 'ERROR_RATE_LIMIT_REACHED';
 		$result = json_decode($src, true);
-
-		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
-		if(($result['player']) == null) return 'ERROR_PLAYER_NOT_FOUND';
+		if($result['success'] != true) return 'ERROR_INCOMPLETE_JSON';
+		if($result['player'] == null) return 'ERROR_PLAYER_NOT_FOUND';
 		return $result['player'];
-	}
-
-	private function fetchGuild($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => $this->apiKey, 'player' => $playerUuid], 300);
-		if(!$src) return 'ERROR_REQUEST_FAILED';
-		$result = json_decode($src, true);
-		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
-		if(($result['guild']) == null) return 'ERROR_GUILD_NOT_FOUND';
-		return $result['guild'];
 	}
 	
 	private function fetchRecentGames($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => $this->apiKey, 'uuid' => $playerUuid], 45);
-		
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => $this->config->api_key, 'uuid' => $playerUuid], 45);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
 		$result = json_decode($src, true);
-		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
-		if(($result['games']) == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
+		if($result['success'] != true) return 'ERROR_INCOMPLETE_JSON';
+		if($result['games'] == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
 		return $result['games'];
 	}
 
 	private function fetchStatus($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => $this->apiKey, 'uuid' => $playerUuid], 10);
-		if($src != null & (($result = json_decode($src, true)['session']) != null)) {
-			return $result;
-		}
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => $this->config->api_key, 'uuid' => $playerUuid], 10);
+		if($src && ($result = json_decode($src, true)['session'])) return $result;
 		return false;
 	}
 	
 	private function fetchSkyblockAuction($profile) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => $this->apiKey, 'profile' => $profile], 300);
-		
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/auction', ['key' => $this->config->api_key, 'profile' => $profile], 300);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
 		$result = json_decode($src, true);
-		if(($result['success']) == null) return 'ERROR_INCOMPLETE_JSON';
-		if(($result['auctions']) == null) return 'ERROR_AUCTIONS_NOT_FOUND';
+		if($result['success'] != true) return 'ERROR_INCOMPLETE_JSON';
+		if($result['auctions'] == null) return 'ERROR_AUCTIONS_NOT_FOUND';
 		return array_reverse($result['auctions']);
 	}
 
 	private function fetchSkyblockProfile($profile) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/profile', ['key' => $this->apiKey, 'profile' => $profile], 300);
+		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/skyblock/profile', ['key' => $this->config->api_key, 'profile' => $profile], 300);
+		if(!$src) return false;
 		$result = json_decode($src, true);
-		if(($result['success']) == null) return -1;
-		if ($result['profile'] != null) return $result['profile'];
-		return false;
+		if($result['success'] != true || $result['profile'] == null) return false;
+		return $result['profile'];
 	}
 
 	// Searches player.stats.Skyblock.profile[] for Skyblock Profile ID that matches the query provided as index (int) or name (string)
@@ -972,25 +901,9 @@ class HypixelCommand {
 		return $level;
 	}
 
-	// Searches player[] for possible rank
-	private function getNetworkRank($player) {
-		if(isset($player['rank']) && $player['rank'] != 'NONE' && $player['rank'] != 'NORMAL') {
-			return ('['.$player['rank'].'] ');
-		}
-		if(isset($player['monthlyPackageRank']) && $player['monthlyPackageRank'] != 'NONE') {
-			return ('[MVP++] ');
-		}
-		if(isset($player['newPackageRank']) && $player['newPackageRank'] != 'NONE') {
-			return ('['.str_replace('_PLUS', '+', $player['newPackageRank']).'] ');
-		}
-	}
-
 	// Gets network level by exp
 	private function getNetworkLevel($exp) {
-		$REVERSE_PQ_PREFIX = -3.5;
-		$REVERSE_CONST = 12.25;
-		$GROWTH_DIVIDES_2 = 0.0008;
-		return $exp < 0 ? 1 : 1 + $REVERSE_PQ_PREFIX + sqrt($REVERSE_CONST + $GROWTH_DIVIDES_2 * $exp);
+		return $exp < 0 ? 1 : sqrt(12.25 + 0.0008 * $exp) - 2.5;
 	}
 
 	// Gets guild level by exp
@@ -1279,7 +1192,7 @@ class HypixelCommand {
 			'mega_doubles' => '超级 Doubles 模式',
 			'solo_insane_tnt_madness' => '单挑疯狂 TNT 模式',
 			'teams_insane_tnt_madness' => '双人疯狂 TNT 模式',
-			'solo rush' => '单挑疾速模式',
+			'solo_rush' => '单挑疾速模式',
 			'teams_insane_rush' => '双人疾速模式',
 			'solo_insane_slime' => '单挑史莱姆模式',
 			'teams_insane_slime' => '双人史莱姆模式',

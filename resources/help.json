@@ -1,5 +1,8 @@
 {
-	"usage": "/help [命令]",
+	"usage": [
+		"/help [命令]",
+		"通过指定命令名, 可以查看特定命令的用法."
+	],
 	"description": "查看命令帮助",
 	"messages": {
 		"layout": [
@@ -10,6 +13,9 @@
 		"placeholders": {
 			"command": "%1$s - %2$s",
 			"command_alias": "%1$s - 命令 %2$s 的别名"
+		},
+		"info": {
+			"unknown_command": "找不到此命令. 使用 /help 查看所有可用的命令."
 		}
 	}
 }

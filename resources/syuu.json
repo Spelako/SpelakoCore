@@ -1,0 +1,49 @@
+{
+	"usage": [
+		"/syuu player <玩家> - 获取玩家信息.",
+		"/syuu lb <分类> - 获取指定模式排行榜."
+	],
+	"description": "获取 SyuuNet 的玩家信息或排行榜",
+	"messages": {
+		"user": {
+			"layout": [
+				"%1$s 的 SyuuNet 排位信息:",
+				"%2$s",
+				"此命令详细用法可在此处查看: %3$s/#help?id=syuu"
+			],
+			"placeholder": "[%1$s] Elo: %2$d | 胜: %3$d | 败: %4$d",
+			"info": {
+				"usage": "正确用法: /syuu player <玩家>",
+				"request_failed": "查询请求发送失败, 请稍后再试.",
+				"ranked_data_not_found": "此玩家没有排位数据."
+			}
+		},
+		"leaderboard": {
+			"layout": [
+				"SyuuNet 的 %1$s 排行榜:",
+				"%2$s",
+				"此命令详细用法可在此处查看: %3$s/#help?id=syuu"
+			],
+			"placeholder": "%1$d. %2$s - %3$d",
+			"info": {
+				"usage": [
+					"正确用法: /syuu lb <分类>",
+					"\"分类\" 可以是下列之一:",
+					"- sharp2prot2, s2p2",
+					"- sharp4prot3, s4p3",
+					"- archer, bow",
+					"- nodelay, combo",
+					"- builduhc, buhc",
+					"- sumo",
+					"- finaluhc",
+					"... 欲查看完整列表, 请访问帮助文档."
+				],
+				"failed_to_parse": "无法解析来自 SyuuNet 的数据.",
+				"unknown_category": "未知的分类, 已跳转至默认分类."
+			}
+		},
+		"default": {
+			"layout": "正确用法: /syuu player <玩家> 或 /syuu lb <分类>"
+		}
+	}
+}

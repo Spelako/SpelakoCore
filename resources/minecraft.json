@@ -1,0 +1,23 @@
+{
+	"usage": [
+		"/minecraft <玩家>",
+		"查询方式可以是玩家名称或 UUID."
+	],
+	"description": "获取指定玩家的 Minecraft 账户信息",
+	"messages": {
+		"layout": [
+			"根据提供的 %1$s 查找到的 Minecraft 账户信息:",
+			"UUID: %2$s",
+			"名称: %3$s"
+		],
+		"placeholders": {
+			"name": "%s",
+			"name_sorted": "%1$d. %2$s"
+		},
+		"info": {
+			"uuid_request_failed": "无法通过此 ID 获取玩家档案.",
+			"name_history_request_failed": "无法通过此 UUID 获取玩家档案.",
+			"syntax_error": "提供的参数不是有效的 ID 或 UUID."
+		}
+	}
+}

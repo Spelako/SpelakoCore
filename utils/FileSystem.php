@@ -11,13 +11,11 @@
  */
 
 class FileSystem {
-	// Gets the contents of a file
 	public static function fileRead($path) {
 		if(file_exists($path)) return file_get_contents($path);
 		return false;
 	}
 
-	// Writes something into the specific file
 	public static function fileWrite($path, $contents) {
 		if(!file_exists($path)) {
 			$spl = explode('/', $path);
@@ -34,6 +32,10 @@ class FileSystem {
 
 	public static function fileExists($path) {
 		return file_exists($path);
+	}
+
+	public static function fileLastModified($path) {
+		return filemtime($path);
 	}
 
 	public static function fileGetSize($path) {

@@ -10,54 +10,77 @@
  * 
  */
 
-class MinecraftCommand {
+class Minecraft {
 	const API_BASE_URL = 'https://api.mojang.com';
 
-	public function getUsage() {
-		return '/minecraft <玩家>';
+	function __construct(private SpelakoCore $core, private $config) {
+		$core->loadJsonResource($config->resource);
 	}
 
-	public function getAliases() {
-		return ['/mc'];
+	public function getName() {
+		return ['/minecraft', '/mc'];
+	}
+
+	public function getUsage() {
+		return SpelakoUtils::buildString($this->core->getJsonValue($this->config->resource, 'usage'));
 	}
 
 	public function getDescription() {
-		return '获取指定玩家的 Minecraft 账户信息';
+		return $this->core->getJsonValue($this->config->resource, 'description');
 	}
 
 	public function hasCooldown() {
 		return true;
 	}
 
+	private function getMessage($key) {
+		return $this->core->getJsonValue($this->config->resource, 'messages.'.$key);
+	}
+
 	public function execute(array $args) {
-		if(!isset($args[1])) return sprintf('正确用法: %s', $this->getUsage());
+		if(!isset($args[1])) return SpelakoUtils::buildString($this->getUsage());
+
 		if(strlen($args[1]) <= 16) {
 			if($uuid = $this->fetchUuidById($args[1])) $usingId = true;
-			else return '无法通过此 ID 获取玩家信息.';
+			else return $this->getMessage('info.uuid_request_failed');
 		}
 		else if(strlen($args[1]) == 32 || strlen($args[1]) == 36) {
 			$uuid = $args[1];
 			$usingId = false;
 		}
-		else return '提供的参数不是有效的 ID 或 UUID.';
+		else return $this->getMessage('info.syntax_error');
 	
 		$profile = $this->fetchProfileByUuid($uuid);
-		if(count($profile) == 1) $placeholder = $profile[0]['name'];
+		if(!$profile) return $this->getMessage('info.name_history_request_failed');
+	
+		if(count($profile) == 1) $placeholder = SpelakoUtils::buildString(
+			$this->getMessage('placeholders.name'),
+			[
+				$profile[0]['name']
+			]
+		);
 		else {
-			$placeholder = array();
+			$lines = array();
 			foreach($profile as $k => $v) {
-				array_push($placeholder, sprintf('%1$d. %2$s', $k + 1, $v['name']));
+				array_push($lines, SpelakoUtils::buildString(
+					$this->getMessage('placeholders.name_sorted'),
+					[
+						$k + 1,
+						$v['name']
+					]
+				));
 			}
+			$placeholder = SpelakoUtils::buildString($lines);
 		}
 
-		return SpelakoUtils::buildString([
-			$usingId ? '根据提供的 ID 查找到的 Minecraft 账户信息:' : '根据提供的 UUID 查找到的 Minecraft 账户信息:',
-			'UUID: %1$s',
-			$profile ? '名称: %2$s' : '玩家名称查询请求发送失败. 请稍后再试.'
-		], [
-			$uuid,
-			is_array($placeholder) ? SpelakoUtils::buildString($placeholder) : $placeholder
-		]);
+		return SpelakoUtils::buildString(
+			$this->getMessage('layout'),
+			[
+				$usingId ? 'ID' : 'UUID',
+				$uuid,
+				$placeholder
+			]
+		);
 	}
 
 	private function fetchUuidById($id) {

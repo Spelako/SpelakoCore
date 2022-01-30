@@ -10,26 +10,21 @@
  * 
  */
 
-class SpelakoCommand {
-	private SpelakoCore $core;
+class Spelako {
+	function __construct(private SpelakoCore $core, private $config) {
+		$core->loadJsonResource($config->resource);
+	}
 
-	const CONFIG_FILE = 'spelako.json';
-
-	function __construct(SpelakoCore $core) {
-		$this->core = $core;
-		$core->loadJsonResource(self::CONFIG_FILE);
+	public function getName() {
+		return ['/spelako'];
 	}
 
 	public function getUsage() {
-		return $this->core->getJsonValue(self::CONFIG_FILE, 'usage');
-	}
-
-	public function getAliases() {
-		return [];
+		return SpelakoUtils::buildString($this->core->getJsonValue($this->config->resource, 'usage'));
 	}
 
 	public function getDescription() {
-		return $this->core->getJsonValue(self::CONFIG_FILE, 'description');
+		return $this->core->getJsonValue($this->config->resource, 'description');
 	}
 
 	public function hasCooldown() {
@@ -37,7 +32,7 @@ class SpelakoCommand {
 	}
 
 	private function getMessage($key) {
-		return $this->core->getJsonValue(self::CONFIG_FILE, 'messages.'.$key);
+		return $this->core->getJsonValue($this->config->resource, 'messages.'.$key);
 	}
 
 	public function execute(array $args, $isStaff) {
@@ -46,7 +41,7 @@ class SpelakoCommand {
 				return SpelakoUtils::buildString($this->getMessage('help.layout'));
 			case 'echo':
 				if(isset($args[2])) return substr($args[0], 14);
-				return $this->getMessage('echo.layout');
+				return SpelakoUtils::buildString($this->getMessage('echo.layout'));
 			case 'stats':
 				$cacheFiles = FileSystem::directoryGetContents(SpelakoUtils::CACHE_DIRECTORY);
 				$totalSize = 0;
@@ -66,9 +61,11 @@ class SpelakoCommand {
 					$totalSize += FileSystem::fileGetSize($file);
 					FileSystem::fileRemove($file);
 				}
-				return sprintf(
+				return SpelakoUtils::buildString(
 					$this->getMessage('clean.layout'),
-					SpelakoUtils::sizeFormat($totalSize)
+					[
+						SpelakoUtils::sizeFormat($totalSize)
+					]
 				);
 		}
 		return SpelakoUtils::buildString(

@@ -1,0 +1,209 @@
+{
+	"usage": [
+		"/hypixel <玩家> [分类]",
+		"目前支持的分类可以是下列之一:",
+		"- recent, r",
+		"- guild, g",
+		"- bedwars, bw",
+		"- skywars, sw",
+		"- murdermystery, mm",
+		"- duels, duel",
+		"- uhc",
+		"- megawalls, mw",
+		"- blitzsg, bsg, hungergames",
+		"- zombies, zb",
+		"- skyblock, sb",
+		"- parkour, p",
+		"更多分类正在开发中..."
+	],
+	"description": "获取指定玩家的 Hypixel 统计信息",
+	"messages": {
+		"guild": {
+			"layout": [
+				"%1$s 的公会信息:",
+				"公会名称: %2$s",
+				"创立时间: %3$s",
+				"等级: %4$.3f | 标签: [%5$s]",
+				"成员: %6$d | 最高在线: %7$d"
+			],
+			"info": {
+				"guild_not_found": "玩家 %s 没有加入任何公会."
+			}
+		},
+		"bsg": {
+			"layout": [
+				"%1$s 的闪电饥饿游戏统计信息:",
+				"游玩次数: %2$s | 硬币: %3$s | 开箱数: %4$s",
+				"击杀: %5$s | 死亡: %6$s | K/D: %7$.3f"
+			]
+		},
+		"duels": {
+			"layout": [
+				"%1$s 的决斗游戏%2$s统计信息:",
+				"%3$s",
+				"回合: %4$s | 胜场: %5$s | 败场: %6$s | W/L: %7$.3f",
+				"%8$s",
+				"击杀: %9$s | 死亡: %10$s | K/D: %11$.3f",
+				"%12$s",
+				"击打: %13$s | 击中: %14$s | 击中率: %15$.1f%%",
+				"%16$s",
+				"恢复生命: %17$s | 造成伤害: %18$s",
+				"%19$s",
+				"%20$s"
+			],
+			"placeholders": {
+				"general_stats": "硬币: %1$s | Ping 偏好: %2$s | 平局数: %3$s",
+				"win_strikes": "当前连胜: %1$s | 最高连胜: %2$s",
+				"win_strikes_no_access": "该玩家在 API 设置中阻止获取连胜信息",
+				"bow_stats": "射箭: %1$s | 射中: %2$s | 射中率: %3$.1f%%",
+				"gapples_eaten": "食用金苹果: %s",
+				"blocks_placed": "方块放置: %s"
+			},
+			"info": {
+				"usage": [
+					"/hypixel %s duels [模式]",
+					"目前支持的模式可以是下列之一:",
+					"- classic_duel, classic",
+					"- sw_duel, sw",
+					"- sw_doubles",
+					"- bow_duel, bow",
+					"- uhc_duel, uhc",
+					"- uhc_doubles",
+					"- uhc_four",
+					"- uhc_meetup",
+					"- potion_duel, potion",
+					"- combo_duel, combo",
+					"- op_duel, op",
+					"- op_doubles",
+					"- mw_duel, mw",
+					"- mw_doubles",
+					"- sumo_duel, sumo",
+					"- blitz_duel, blitz",
+					"- bowspleef_duel, bowspleef",
+					"- bridge_duel, bridge",
+					"- bridge_doubles",
+					"- bridge_four",
+					"- bridge_2v2v2v2",
+					"- bridge_3v3v3v3"
+				]
+			}
+		},
+		"uhc": {
+			"layout": [
+				"%1$s 的极限生存冠军统计信息:",
+				"分数: %2$s | 硬币: %3$s | 胜场: %4$s",
+				"击杀: %5$s | 死亡: %6$s | K/D: %7$.3f"
+			]
+		},
+		"mw": {
+			"layout": [
+				"%1$s 的超级战墙统计信息:",
+				"凋零伤害: %2$s | 职业: %3$s | 硬币: %4$s",
+				"击杀: %5$s | 助攻: %6$s | 死亡: %7$s | K/D: %8$.3f",
+				"终杀: %9$s | 终助: %10$s | 终死: %11$s | FKDR: %12$.3f",
+				"胜场: %13$s | 败场: %14$s | W/L: %15$.3f"
+			]
+		},
+		"sw": {
+			"layout": [
+				"%1$s 的空岛战争统计信息:",
+				"等级: %2$s | 硬币: %3$s | 助攻: %4$s",
+				"击杀: %5$s | 死亡: %6$s | K/D: %7$.3f",
+				"胜场: %8$s | 败场: %9$s | W/L: %10$.3f"
+			]
+		},
+		"bw": {
+			"layout": [
+				"%1$s 的起床战争%2$s统计信息:",
+				"%3$s",
+				"拆床: %4$s | 被拆床: %5$s | 连胜: %6$s",
+				"胜场: %7$s | 败场: %8$s | W/L: %9$s",
+				"击杀: %10$s | 死亡: %11$s | K/D: %12$s",
+				"终杀: %13$s | 终死: %14$s | FKDR: %15$s",
+				"铁锭收集: %16$s | 金锭收集: %17$s",
+				"钻石收集: %18$s | 绿宝石收集: %19$s",
+				"%20$s"
+			],
+			"placeholders": {
+				"general_stats": "等级: %1$s | 硬币: %2$s",
+				"win_strikes_no_access": "玩家阻止获取"
+			},
+			"info": {
+				"usage": [
+					"/hypixel %s bw [模式]",
+					"目前支持的模式可以是下列之一:",
+					"- eight_one, 8_1, solo",
+					"- eight_two, 8_2, doubles",
+					"- four_three, 4_3, 3v3v3v3",
+					"- four_four, 4_4, 4v4v4v4",
+					"- two_four, 2_4, 4v4",
+					"- eight_two_rush, 8_2_rush, doubles_rush",
+					"- four_four_rush, 4_4_rush 4v4v4v4_rush",
+					"- eight_two_ultimate, 8_2_ultimate, doubles_ultimate",
+					"- four_four_ultimate, 4_4_ultimate, 4v4v4v4_ultimate",
+					"- castle",
+					"- eight_two_voidless, 8_2_voidless, doubles_voidless",
+					"- four_four_voidless, 4_4_voidless, 4v4v4v4_voidless",
+					"- eight_two_armed, 8_2_armed, doubles_armed",
+					"- four_four_armed, 4_4_armed, 4v4v4v4_armed",
+					"- eight_two_lucky, 8_2_lucky, doubles_lucky",
+					"- four_four_lucky, 4_4_lucky, 4v4v4v4_lucky"
+				]
+			}
+		},
+		"info": {
+			"request_failed": "查询请求发送超时或失败, 请稍后再试.",
+			"incomplete_json": "查询结果接收失败, 请稍后再试.",
+			"player_not_found": "找不到此玩家, 请确认拼写无误.",
+			"rate_limit_reached": "该玩家需要一段冷却时间才能查询, 请一段时间后再试.",
+			"learn_more": "此命令详细用法可在此处查看: %s/#help?id=hypixel"
+		},
+		"modes": {
+			"general": "全局",
+
+			"duels_classic_duel": "经典决斗",
+			"duels_sw_duel": "空岛战争决斗",
+			"duels_sw_doubles": "空岛战争决斗双人决斗",
+			"duels_bow_duel": "弓箭决斗",
+			"duels_uhc_duel": "极限生存决斗",
+			"duels_uhc_doubles": "极限生存冠军双人决斗",
+			"duels_uhc_four": "极限生存冠军四人决斗",
+			"duels_uhc_meetup": "极限生存冠军死亡竞赛决斗",
+			"duels_potion_duel": "药水决斗",
+			"duels_combo_duel": "连击决斗",
+			"duels_op_duel": "高手决斗",
+			"duels_op_doubles": "高手双人决斗",
+			"duels_mw_duel": "超级战墙决斗",
+			"duels_mw_doubles": "超级战墙双人决斗",
+			"duels_sumo_duel": "相扑决斗",
+			"duels_blitz_duel": "闪电饥饿游戏决斗",
+			"duels_bowspleef_duel": "掘一死箭决斗",
+			"duels_bridge_duel": "战桥决斗",
+			"duels_bridge_doubles": "战桥双人决斗",
+			"duels_bridge_four": "战桥四人决斗",
+			"duels_bridge_2v2v2v2": "战桥 2v2v2v2 决斗",
+			"duels_bridge_3v3v3v3": "战桥 4v4v4v4 决斗",
+
+			"bedwars_eight_one": "单挑模式",
+			"bedwars_eight_two": "双人模式",
+			"bedwars_four_three": " 3v3v3v3 模式",
+			"bedwars_four_four": " 4v4v4v4 模式",
+			"bedwars_capture": "据点模式",
+			"bedwars_eight_two_rush": "双人疾速模式",
+			"bedwars_four_four_rush": " 4v4v4v4 疾速模式",
+			"bedwars_eight_two_ultimate": "双人超能力模式",
+			"bedwars_four_four_ultimate": " 4v4v4v4 超能力模式",
+			"bedwars_castle": " 40v40 城池攻防战模式",
+			"bedwars_two_four": " 4v4 模式",
+			"bedwars_eight_two_voidless": "双人无虚空模式",
+			"bedwars_four_four_voidless": " 4v4v4v4 无虚空模式",
+			"bedwars_eight_two_armed": "双人枪械模式",
+			"bedwars_four_four_armed": " 4v4v4v4 枪械模式",
+			"bedwars_eight two_lucky": "双人幸运方块模式",
+			"bedwars_four_four_lucky": " 4v4v4v4 幸运方块模式",
+			"bedwars_eight two_underworld": "双人 under world 模式",
+			"bedwars_four_four_underworld": " 4v4v4v4 under world 模式",
+			"bedwars_practice": "练习模式"
+		}
+	}
+}

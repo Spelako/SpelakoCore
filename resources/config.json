@@ -1,8 +1,0 @@
-{
-	"hypixel": {
-		"apikey": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-	},
-	"staffs": ["admin", "123456789"],
-	"cooldown": 5,
-	"timezone_offset": 28800
-}

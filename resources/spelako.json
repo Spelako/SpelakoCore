@@ -1,5 +1,8 @@
 {
-	"usage": "/spelako",
+	"usage": [
+		"/spelako [子命令]",
+		"可选的子命令仅机器人管理员可用."
+	],
 	"description": "关于 Spelako",
 	"messages": {
 		"help": {
@@ -34,7 +37,7 @@
 				"当前版本为 Spelako %1$s, 上次更新于 %2$s.",
 				"本程序是自由软件, 你可以在 GitHub 上获取其源代码.",
 				"开发者: %3$s",
-				"了解更多请访问此链接: %4$s",
+				"了解更多请访问这里: %4$s",
 				"%5$s"
 			],
 			"placeholder": "使用 /spelako help 以查看管理员命令."
