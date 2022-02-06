@@ -44,7 +44,7 @@ class Hypixel {
 	}
 
 	public function execute(array $args) {
-		if(!isset($args[1])) return $this->getUsage();
+		if(empty($args[1])) return $this->getUsage();
 
 		$status = '';
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => $this->config->api_key, 'name' => $args[1]], 300, $status);
@@ -108,7 +108,7 @@ class Hypixel {
 				);
 			case 'duels':
 			case 'duel':
-				if(!isset($args[3])) {
+				if(empty($args[3])) {
 					$keyAsPrefix = $keyAsSuffix = '';
 					$modeName = $this->getMessage('modes.general');
 				}
@@ -230,7 +230,7 @@ class Hypixel {
 				);
 			case 'bedwars':
 			case 'bw':
-				if(!isset($args[3])) {
+				if(empty($args[3])) {
 					$keyAsPrefix = '';
 					$modeName = $this->getMessage('modes.general');
 				}
@@ -279,6 +279,9 @@ class Hypixel {
 				);
 			case 'murdermystery':
 			case 'mm':
+				if(isset($args[3][0])) {
+					
+				}
 				if($args[3][0] >= 1 && $args[3][0] <= 4 && $args[3][1] == null) $modeCode = $args[3];
 				else if(ord($args[3][0]) >= ord('a') && ord($args[3][0]) <= ord('u') && $args[3][1] == null) $mapCode = ord($args[3]);
 				else if($args[3][0] >= 1 && $args[3][0] <= 4 && ord($args[3][1]) >= ord('a') && ord($args[3][1]) <= ord('u') && $args[3][2] == null) {
@@ -290,20 +293,13 @@ class Hypixel {
 					$mapCode = null;
 				}
 				else {
-					return SpelakoUtils::buildString([
-						'未知的格式.',
-						'正确格式 /hyp %1$s mm [模式序号 / 地图序号 / 模式+地图序号]',
-						'模式序号可以是下列之一 (序号 - 模式名):',
-						'1. 经典模式',
-						'2. 双倍模式',
-						'3. 刺客模式',
-						'4. 感染模式',
-						'地图序号和模式+地图序号详细用法可在此处查看:',
-						'%2$s/#help',
-					],[
-						$p['displayname'],
-						$footer
-					]);
+					return SpelakoUtils::buildString(
+						$this->getMessage('mm.info.usage'),
+						[
+							$p['displayname'],
+							$footer
+						]
+					);
 				}
 
 				$mode = [ // [keyPrefix, displayName]
@@ -383,109 +379,88 @@ class Hypixel {
 				]);
 			case 'zombies':
 			case 'zb':
-				$map = match($args[3]) {
+				$map = match(isset($args[3]) ? $args[3] : 'all') {
 					'deadend', 'de' => [
-						'mapIndex' => 0,
-						'keySuffix' => '_deadend',
-						'displayName' => '穷途末路',
+						'mapKeys' => ['_deadend', 'Dead End'], // 0: key for stats; 1: key for map display name
 						'bossKeys' => ['tnt', 'inferno', 'broodmother'],
-						'bossDisplayNames' => ['炸弹僵尸', '炼狱', '巢穴之母']
 					],
 					'badblood', 'bb' => [
-						'mapIndex' => 1,
-						'keySuffix' => '_badblood',
-						'displayName' => '坏血之宫',
-						'bossKeys' => ['king_slime', 'wither', 'herobrine'],
-						'bossDisplayNames' => ['史莱姆王', '凋零', 'HIM ']
+						'mapKeys' => ['_badblood', 'Bad Blood'],
+						'bossKeys' => ['king_slime', 'wither', 'herobrine']
 					],
 					'alienarcadium', 'aa' => [
-						'mapIndex' => 2,
-						'keySuffix' => '_alienarcadium',
-						'displayName' => '外星游乐园',
-						'bossKeys' => ['giant', 'the_old_one', 'giant_rainbow'], // No need to store the 4th boss here at this map
-						'bossDisplayNames' => ['巨人', '长者', '彩虹巨人']
+						'mapKeys' => ['_alienarcadium', 'Alien Arcadium'],
+						'bossKeys' => ['giant', 'the_old_one', 'giant_rainbow', 'world_ender']
 					],
-					null => [
-						'keySuffix' => '',
-						'displayName' => '全部'
+					'all' => [
+						'mapKeys' => ['', 'all']
 					],
-					default => 'ERROR'
+					default => null
 				};
-				if($map == 'ERROR') return SpelakoUtils::buildString([
-					'未知的地图.',
-					'目前支持的地图可以是下列之一:',
-					'- deadend, de',
-					'- badblood, bb',
-					'- alienarcadium, aa',
-				]);
-				if($map['mapIndex'] == 2) $args[4] = 'normal';
-				$difficulty = match($args[4]) {
-					'normal', 'norm' => [
-						'keySuffix' => '_normal',
-						'displayName' => '普通难度'
-					],
-					'hard' => [
-						'keySuffix' => '_hard',
-						'displayName' => '困难难度'
-					],
-					'rip' => [
-						'keySuffix' => '_rip',
-						'displayName' => '安息难度'
-					],
-					null => [
-						'keySuffix' => '',
-						'displayName' => '全局'
-					],
-					default => 'ERROR'
+				if(is_null($map)) return $this->getMessage('zb.info.unknown_map');
+
+				$difficulty = match($map['mapKeys'][0] == '_alienarcadium' ? 'normal' : (isset($args[4]) ? $args[4] : 'general')) {
+					'normal', 'norm' => ['_normal', 'normal'], // 0: key for stats; 1: key for map display name
+					'hard' => ['_hard', 'hard'],
+					'rip' => ['_rip', 'rip'],
+					'general' => ['', 'general'],
+					default => null
 				};
-				if($difficulty == 'ERROR') return SpelakoUtils::buildString([
-					'未知的难度.',
-					'目前支持的难度可以是下列之一:',
-					'- normal, norm',
-					'- hard',
-					'- rip',
-				]);
-				return SpelakoUtils::buildString([
-					'%1$s 的僵尸末日%2$s地图%3$s统计信息:',
-					'生存总回合数: %4$s | 胜场: %5$s | 最佳回合: %6$s',
-					'僵尸击杀数: %7$s | 复活玩家数: %8$s | 开门数: %9$s',
-					'窗户修复数: %10$s | 被击倒次数: %11$s | 死亡数: %12$s',
-					$difficulty['keySuffix'] ? '最快完成 10 回合: %13$s' : '', // This shows only when map and difficulty are set
-					$difficulty['keySuffix'] ? '最快完成 20 回合: %14$s' : '',
-					$difficulty['keySuffix'] ? '最快通关: %15$s' : '',
-					!$map['keySuffix'] ? '射击: %16$s | 命中: %17$s | 爆头: %18$s' : ($map['mapIndex'] == 2 || !$difficulty['keySuffix'] ? '%19$s击杀: %20$s | %21$s击杀: %22$s' : ''),
-					!$map['keySuffix'] ? '命中率: %23$.1f%% | 爆头率 %24$.1f%%' : ($map['mapIndex'] == 2 || !$difficulty['keySuffix'] ? '%25$s击杀: %26$s'.($map['mapIndex'] == 2 ? ' | 世界毁灭者击杀: %27$s' : '') : ''),
-					'此命令详细用法可在此处查看: %28$s/#help'
-				], [
-					$rank.$p['displayname'],
-					$map['displayName'],
-					$difficulty['displayName'],
-					number_format($p['stats']['Arcade']['total_rounds_survived_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['wins_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['best_round_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['zombie_kills_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['players_revived_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['doors_opened_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['windows_repaired_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['times_knocked_down_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					number_format($p['stats']['Arcade']['deaths_zombies'.$map['keySuffix'].$difficulty['keySuffix']]),
-					SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_10_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
-					SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_20_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
-					SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_30_zombies'.$map['keySuffix'].$difficulty['keySuffix']], true, 'H:i:s'),
-					number_format($p['stats']['Arcade']['bullets_shot_zombies']),
-					number_format($p['stats']['Arcade']['bullets_hit_zombies']),
-					number_format($p['stats']['Arcade']['headshots_zombies']),
-					$map['bossDisplayNames'][0],
-					number_format($p['stats']['Arcade'][$map['bossKeys'][0].'_zombie_kills_zombies']),
-					$map['bossDisplayNames'][1],
-					number_format($p['stats']['Arcade'][$map['bossKeys'][1].'_zombie_kills_zombies']),
-					100 * SpelakoUtils::div($p['stats']['Arcade']['bullets_hit_zombies'], $p['stats']['Arcade']['bullets_shot_zombies']),
-					100 * SpelakoUtils::div($p['stats']['Arcade']['headshots_zombies'], $p['stats']['Arcade']['bullets_hit_zombies']),
-					$map['bossDisplayNames'][2],
-					number_format($p['stats']['Arcade'][$map['bossKeys'][2].'_zombie_kills_zombies']),
-					$map['mapIndex'] == 2 ? number_format($p['stats']['Arcade']['world_ender_zombie_kills_zombies']) : '',
-					$footer
-				]);
+				if(is_null($difficulty)) return $this->getMessage('zb.info.unknown_difficulty');
+
+				return SpelakoUtils::buildString(
+					$this->getMessage('zb.layout'),
+					[
+						$rank.$p['displayname'],
+						$this->getMessage('maps.'.$map['mapKeys'][1]),
+						$this->getMessage('zb.placeholders.difficulties'.$difficulty[1]),
+						number_format($p['stats']['Arcade']['total_rounds_survived_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['wins_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['best_round_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['zombie_kills_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['players_revived_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['doors_opened_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['windows_repaired_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['times_knocked_down_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						number_format($p['stats']['Arcade']['deaths_zombies'.$map['mapKeys'][0].$difficulty[0]]),
+						$difficulty[1] == 'general' ? '' : SpelakoUtils::buildString(
+							$this->getMessage('zb.placeholders.records'), // 指定地图和难度时, 显示 zb.placeholders.records
+							[
+								SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_10_zombies'.$map['mapKeys'][0].$difficulty[0]], true, 'H:i:s'),
+								SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_20_zombies'.$map['mapKeys'][0].$difficulty[0]], true, 'H:i:s'),
+								SpelakoUtils::formatTime($p['stats']['Arcade']['fastest_time_30_zombies'.$map['mapKeys'][0].$difficulty[0]], true, 'H:i:s'),
+							]
+						),
+						$map['mapKeys'][1] == 'all' ? (// 查询所有地图时, 显示 zb.placeholders.shots
+							SpelakoUtils::buildString(
+								$this->getMessage('zb.placeholders.shots'),
+								[
+									number_format($p['stats']['Arcade']['bullets_shot_zombies']),
+									number_format($p['stats']['Arcade']['bullets_hit_zombies']),
+									number_format($p['stats']['Arcade']['headshots_zombies']),
+									100 * SpelakoUtils::div($p['stats']['Arcade']['bullets_hit_zombies'], $p['stats']['Arcade']['bullets_shot_zombies']),
+									100 * SpelakoUtils::div($p['stats']['Arcade']['headshots_zombies'], $p['stats']['Arcade']['bullets_hit_zombies'])
+								]
+							)
+						)
+						: ( // 查询指定地图全部难度 (aa 地图只有一个难度) 时, 显示 zb.placeholders.boss_kills
+							($map['mapKeys'][0] != '_alienarcadium' && $difficulty[1] != 'general') ? '' : SpelakoUtils::buildString(
+								$this->getMessage($map['mapKeys'][0] == '_alienarcadium' ? 'zb.placeholders.boss_kills_aa' : 'zb.placeholders.boss_kills'),
+								[
+									$this->getMessage('zb.placeholders.bosses.'.$map['bossKeys'][0]),
+									number_format($p['stats']['Arcade'][$map['bossKeys'][0].'_zombie_kills_zombies']),
+									$this->getMessage('zb.placeholders.bosses.'.$map['bossKeys'][1]),
+									number_format($p['stats']['Arcade'][$map['bossKeys'][1].'_zombie_kills_zombies']),
+									$this->getMessage('zb.placeholders.bosses.'.$map['bossKeys'][2]),
+									number_format($p['stats']['Arcade'][$map['bossKeys'][2].'_zombie_kills_zombies']),
+									$map['mapKeys'][0] == '_alienarcadium' ? $this->getMessage('zb.placeholders.bosses.'.$map['bossKeys'][3]) : '',
+									$map['mapKeys'][0] == '_alienarcadium' ? number_format($p['stats']['Arcade'][$map['bossKeys'][3].'_zombie_kills_zombies']) : '',
+								]
+							)
+						),
+						$footer
+					]
+				);
 			case 'skyblock':
 			case 'sb':
 				$profiles = $p['stats']['SkyBlock']['profiles'];
@@ -560,7 +535,7 @@ class Hypixel {
 						}
 						return SpelakoUtils::buildString([
 							'%1$s 的空岛生存 %2$s 存档物品拍卖信息:',
-							'%3$s', // Body placeholder
+							'%3$s',
 							'当前展示 %4$d/%5$d 页.',
 							$totPages > 1 ?'使用 /hyp %6$s sb a %7$s <页数> 来查看具体页数的拍卖信息.' : '', 
 							], [
@@ -831,16 +806,6 @@ class Hypixel {
 					$this->getLanguageName($p['userLanguage'])
 				]);
 		}
-	}
-
-	private function fetchGeneralStats($player) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => $this->config->api_key, 'name' => $player], 300, $status);
-		if(!$src) return 'ERROR_REQUEST_FAILED';
-		if(str_contains($status, '429')) return 'ERROR_RATE_LIMIT_REACHED';
-		$result = json_decode($src, true);
-		if($result['success'] != true) return 'ERROR_INCOMPLETE_JSON';
-		if($result['player'] == null) return 'ERROR_PLAYER_NOT_FOUND';
-		return $result['player'];
 	}
 	
 	private function fetchRecentGames($playerUuid) {

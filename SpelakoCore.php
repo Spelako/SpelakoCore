@@ -25,7 +25,7 @@ class SpelakoCore {
 	private int $cooldown = 0;
 	private string $cooldownMessage = '';
 	private array $userLastExecutions = [];
-	
+
 	/**
 	 * 创建一个 Spelako 对象
 	 *

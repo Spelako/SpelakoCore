@@ -38,7 +38,7 @@ class Minecraft {
 	}
 
 	public function execute(array $args) {
-		if(!isset($args[1])) return SpelakoUtils::buildString($this->getUsage());
+		if(empty($args[1])) return SpelakoUtils::buildString($this->getUsage());
 
 		if(strlen($args[1]) <= 16) {
 			if($uuid = $this->fetchUuidById($args[1])) $usingId = true;

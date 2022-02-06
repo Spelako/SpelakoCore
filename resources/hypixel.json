@@ -151,6 +151,104 @@
 				]
 			}
 		},
+		"mm": {
+			"layout": [
+
+			],
+			"info": {
+				"usage": [
+					"/hypixel %1$s mm [模式序号 / 地图序号 / 模式+地图序号]",
+					"模式序号可以是下列之一 (序号 - 模式名):",
+					"1. 经典模式",
+					"2. 双倍模式",
+					"3. 刺客模式",
+					"4. 感染模式",
+					"地图序号和模式+地图序号详细用法可在此处查看:",
+					"%2$s"
+				]
+			}
+		},
+		"zb": {
+			"layout": [
+				"%1$s 的僵尸末日%2$s地图%3$s统计信息:",
+				"生存总回合数: %4$s | 胜场: %5$s | 最佳回合: %6$s",
+				"僵尸击杀数: %7$s | 复活玩家数: %8$s | 开门数: %9$s",
+				"窗户修复数: %10$s | 被击倒次数: %11$s | 死亡数: %12$s",
+				"%13$s",
+				"%14$s",
+				"%15$s"
+			],
+			"placeholders": {
+				"records": [
+					"最快完成 10 回合: %1$s",
+					"最快完成 20 回合: %2$s",
+					"最快通关: %3$s"
+				],
+				"shots": [
+					"射击: %1$s | 命中: %2$s | 爆头: %3$s",
+					"命中率: %4$.1f%% | 爆头率 %5$.1f%%"
+				],
+				"boss_kills": [
+					"%1$s击杀: %2$s | %3$s击杀: %4$s",
+					"%5$s击杀: %6$s"
+				],
+				"boss_kills_aa": [
+					"%1$s击杀: %2$s | %3$s击杀: %4$s",
+					"%5$s击杀: %6$s | %7$s击杀: %8$s"
+				],
+				"bosses": {
+					"tnt": "炸弹僵尸",
+					"inferno": "炼狱",
+					"broodmother": "巢穴之母",
+					"king_slime": "史莱姆王",
+					"wither": "凋零",
+					"herobrine": "HIM",
+					"giant": "巨人",
+					"the_old_one": "长者",
+					"giant_rainbow": "彩虹巨人",
+					"world_ender": "世界毁灭者"
+				},
+				"difficulties": {
+					"normal": "普通难度",
+					"hard": "困难难度",
+					"rip": "安息难度",
+					"general": "全局"
+				}
+			},
+			"info": {
+				"unknown_map": [
+					"未知的地图.",
+					"目前支持的地图可以是下列之一:",
+					"- deadend, de",
+					"- badblood, bb",
+					"- alienarcadium, aa"
+				],
+				"unknown_difficulty": [
+					"未知的难度.",
+					"目前支持的难度可以是下列之一:",
+					"- normal, norm",
+					"- hard",
+					"- rip"
+				]
+			}
+		},
+		"sb": {
+			"auctions": {
+				"layout": [
+					"%1$s 的空岛生存 %2$s 存档物品拍卖信息:",
+					"%3$s",
+					"当前展示 %4$d/%5$d 页."
+				],
+				"placeholders": {
+					"item": [
+
+					],
+					"item_bin": [
+						
+					]
+				}
+			}
+		},
 		"info": {
 			"request_failed": "查询请求发送超时或失败, 请稍后再试.",
 			"incomplete_json": "查询结果接收失败, 请稍后再试.",
@@ -203,7 +301,38 @@
 			"bedwars_four_four_lucky": " 4v4v4v4 幸运方块模式",
 			"bedwars_eight two_underworld": "双人 under world 模式",
 			"bedwars_four_four_underworld": " 4v4v4v4 under world 模式",
-			"bedwars_practice": "练习模式"
+			"bedwars_practice": "练习模式",
+
+			"murder_classic": "经典模式",
+			"murder_double_up": "双倍模式",
+			"murder_assassins": "刺客模式",
+			"murder_infection": "感染模式"
+		},
+		"maps": {
+			"all": "全部",
+
+			"Dead End": "穷途末路",
+			"Bad Blood": "坏血之宫",
+			"Alien Arcadium": "外星游乐园"
+		},
+		"player_language": {
+			"ENGLISH": "英语",
+			"GERMAN": "德语",
+			"FRENCH": "法语",
+			"CHINESE_SIMPLIFIED": "简体中文",
+			"CHINESE_TRADITIONAL": "繁体中文",
+			"PORTUGUESE_BR": "葡萄牙语_巴西",
+			"RUSSIAN": "俄语",
+			"KOREAN": "韩语/朝鲜语",
+			"POLISH": "波兰语",
+			"JAPANESE": "日本语",
+			"PIRATE": "海盗语",
+			"PORTUGUESE_PT": "葡萄牙语_葡萄牙",
+			"TURKISH": "土耳其",
+			"CZECH": "捷克语",
+			"FINNISH": "芬兰语",
+			"GREEK": "希腊语",
+			"no_access": "获取被阻止"
 		}
 	}
 }

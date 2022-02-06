@@ -39,11 +39,11 @@ class Syuu {
 	}
 
 	public function execute(array $args) {
-		if(!isset($args[1])) return $this->getMessage('default.layout');
+		if(empty($args[1])) return $this->getMessage('default.layout');
 		switch($args[1]) {
 			case 'player':
 			case 'user':
-				if(!isset($args[2])) return $this->getMessage('user.info.usage');
+				if(empty($args[2])) return $this->getMessage('user.info.usage');
 				$p = $this->fetchPlayerStats($args[2]);
 				if($p == 'ERROR_REQUEST_FAILED') return $this->getMessage('user.info.request_failed');
 				if($p == 'ERROR_RANKED_DATA_NOT_FOUND') return $this->getMessage('user.info.ranked_data_not_found');
@@ -68,7 +68,7 @@ class Syuu {
 			case 'leaderboards':
 			case 'leaderboard':
 			case 'lb':
-				if(!isset($args[2]) || !($category = $this->getCategoryName($args[2]))) return SpelakoUtils::buildString($this->getMessage('leaderboard.info.usage'));
+				if(empty($args[2]) || !($category = $this->getCategoryName($args[2]))) return SpelakoUtils::buildString($this->getMessage('leaderboard.info.usage'));
 				if(!($lb = $this->fetchPracticeLeaderboards())) return $this->getMessage('leaderboard.info.failed_to_parse');
 				$placeholder = array();
 				foreach($lb[$category] as $k => $v) {
