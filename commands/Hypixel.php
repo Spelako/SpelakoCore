@@ -40,7 +40,6 @@ class Hypixel {
 	}
 
 	private function getMessage($key) {
-		$result /////////////////////////////////////////////////
 		return $this->core->getJsonValue($this->config->resource, 'messages.'.$key);
 	}
 
