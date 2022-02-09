@@ -57,13 +57,13 @@ class SpelakoUtils {
 	/**
 	 * 通过时间戳格式化一个时刻或时间间隔
 	 *
-	 * @param int|float $timestamp 时间戳
+	 * @param int|float|null $timestamp 时间戳
 	 * @param bool $inSeconds 不使用毫秒制
 	 * @param string $format 格式
 	 * @param int|float $offset 偏移量 (秒)
 	 * @return string 结果
 	 */
-	public static function formatTime(int|float $timestamp, bool $inSeconds = false, string $format = 'Y-m-d H:i', int|float $offset = 0) : string {
+	public static function formatTime(int|float|null $timestamp, bool $inSeconds = false, string $format = 'Y-m-d H:i', int|float $offset = 0) : string {
 		return gmdate($format, $inSeconds ? $timestamp : round($timestamp / 1000) + $offset);
 	}
 
