@@ -49,8 +49,8 @@ class Hypixel {
 		$status = '';
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/player', ['key' => $this->config->api_key, 'name' => $args[1]], 300, $status);
 
-		if(!$src) return $this->getMessage('info.request_failed');
 		if(str_contains($status, '429')) return $this->getMessage('info.rate_limit_reached');
+		if(!$src) return $this->getMessage('info.request_failed');
 		$result = json_decode($src, true);
 		if($result['success'] != true) return $this->getMessage('info.incomplete_json');
 		if($result['player'] == null) return $this->getMessage('info.player_not_found');
@@ -79,13 +79,23 @@ class Hypixel {
 				if($result['guild'] == null) return SpelakoUtils::buildString($this->getMessage('info.guild.guild_not_found'), [$p['displayname']]);
 				$g = $result['guild'];
 
+				$guildLevelTables = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000];
+				$level = 0;
+				do {
+					if($level >= 15) break;
+					else $need = $guildLevelTables[$level];
+					$g['exp'] -= $need;
+					$level ++;
+				} while($g['exp'] >= 0);
+				$level += $g['exp'] / $need;
+
 				return SpelakoUtils::buildString(
 					$this->getMessage('guild.layout'),
 					[
 						$rank.$p['displayname'],
 						$g['name'],
 						SpelakoUtils::formatTime($g['created'], offset: $this->config->timezone_offset),
-						$this->getGuildLevel($g['exp']),
+						$level,
 						$this->getPlainString($g['tag']),
 						count($g['members']),
 						$g['achievements']['ONLINE_PLAYERS']
@@ -350,7 +360,7 @@ class Hypixel {
 					'此命令详细用法可在此处查看: %24$s/#help'
 				], [
 					$rank.$p['displayname'],
-					$this->getModeName($mode[1]),
+					$this->getMessage('modes.'.$mode[1]),
 					number_format($p['stats']['MurderMystery']['coins']),
 					number_format($p['stats']['MurderMystery']['murderer_chance']),
 					number_format($p['stats']['MurderMystery']['detective_chance']),
@@ -373,7 +383,7 @@ class Hypixel {
 					number_format($p['stats']['MurderMystery']['quickest_detective_win_time_seconds'.$map[0].$mode[0]]),
 					number_format($p['stats']['MurderMystery']['quickest_murderer_win_time_seconds'.$map[0].$mode[0]]),
 					$footer,
-					$this->getMapName($map[1]),
+					$this->getMessage('maps.'.$map[1]),
 					number_format($p['stats']['MurderMystery']['kills_as_infected'.$map[0].$mode[0]]),
 					number_format($p['stats']['MurderMystery']['kills_as_survivor'.$map[0].$mode[0]])
 				]);
@@ -646,6 +656,22 @@ class Hypixel {
 						]);
 						
 				}
+			case 'pit':
+			case 'thepit': 
+				return SpelakoUtils::buildString(
+					$this->getMessage('pit.layout'),
+					[
+						$rank.$p['displayname'],
+						number_format($p['stats']['Pit']['profile']['xp']),
+						count($p['stats']['Pit']['profile']['prestiges'] ?? []),
+						number_format($p['stats']['Pit']['pit_stats_ptl']['max_streak']),
+						number_format($p['stats']['Pit']['pit_stats_ptl']['kills']),
+						number_format($p['stats']['Pit']['pit_stats_ptl']['assists']),
+						number_format($p['stats']['Pit']['pit_stats_ptl']['deaths']),
+						SpelakoUtils::div($p['stats']['Pit']['pit_stats_ptl']['kills'], $p['stats']['Pit']['pit_stats_ptl']['deaths']),
+						SpelakoUtils::div($p['stats']['Pit']['pit_stats_ptl']['kills'] + $p['stats']['Pit']['pit_stats_ptl']['assists'], $p['stats']['Pit']['pit_stats_ptl']['deaths'])
+					]
+				);
 			case 'r':
 			case 'recent':
 				$r = $this->fetchRecentGames($p['uuid']);
@@ -663,9 +689,9 @@ class Hypixel {
 						'	开始时间: %4$s',
 						$r[$i]['ended'] ? '	结束时间: %5$s' : '	● 游戏进行中...'
 					], [
-						$this->getGameName($r[$i]['gameType']),
-						$this->getModeName($r[$i]['mode']),
-						($statusMap = $this->getMapName($r[$i]['map'])) != '' ? $statusMap.'地图' : '',
+						$this->getMessage('games.'.$r[$i]['gameType']) ?? (' '.$status['gameType'].' '),
+						$this->getMessage('modes.'.$r[$i]['mode']) ?? (' '.$status['mode'].' '),
+						$this->getMessage('maps.'.$r[$i]['map']) ?? (' '.$status['map'].' '),
 						SpelakoUtils::formatTime($r[$i]['date'], format:'Y-m-d H:i:s'),
 						$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], format:'Y-m-d H:i:s') : ''
 					]));
@@ -752,8 +778,18 @@ class Hypixel {
 			default:
 				if(isset($args[2])) return SpelakoUtils::buildString($this->getUsage());
 
+				$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => $this->config->api_key, 'player' => $p['uuid']], 300);
+				if(!$src) return $this->getMessage('info.request_failed');
+				$result = json_decode($src, true);
+				if($result['success'] != true) return $this->getMessage('info.incomplete_json');
+				if($result['guild'] == null) return SpelakoUtils::buildString($this->getMessage('info.guild.guild_not_found'), [$p['displayname']]);
+				$g = $result['guild'];
+
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
-				$status = $online ? $this->fetchStatus($p['uuid']) : null;
+				if($online) {
+					$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => $this->config->api_key, 'uuid' => $p['uuid']], 10);
+					if($src) $status = json_decode($src, true)['session'];
+				}
 
 				return SpelakoUtils::buildString(
 					$this->getMessage('general.layout'),
@@ -791,8 +827,8 @@ class Hypixel {
 							$this->getMessage('general.placeholders.status'),
 							[
 								$status ? ($this->getMessage('games.'.$status['gameType']) ?? (' '.$status['gameType'].' ')) : $this->getMessage('general.placeholders.no_access'),
-								$status ? ($this->getMessage('modes.'.$status['mode']) ?? (' '.$status['mode'].' ')) : '',
-								$status ? ($this->getMessage('languages.'.$status['map']) ?? (' '.$status['map'].' ')) : ''
+								$status ? ($this->getMessage('modes.'.($status['mode'])) ?? (' '.$status['mode'].' ')) : '',
+								$status ? ($this->getMessage('maps.'.($status['map'] ?? 'none')) ?? (' '.$status['map'].' ')) : ''
 							]
 						),
 						$footer
@@ -800,7 +836,7 @@ class Hypixel {
 				);
 		}
 	}
-	
+
 	private function fetchRecentGames($playerUuid) {
 		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => $this->config->api_key, 'uuid' => $playerUuid], 45);
 		if(!$src) return 'ERROR_REQUEST_FAILED';
@@ -808,12 +844,6 @@ class Hypixel {
 		if($result['success'] != true) return 'ERROR_INCOMPLETE_JSON';
 		if($result['games'] == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
 		return $result['games'];
-	}
-
-	private function fetchStatus($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => $this->config->api_key, 'uuid' => $playerUuid], 10);
-		if($src && ($result = json_decode($src, true)['session'])) return $result;
-		return false;
 	}
 	
 	private function fetchSkyblockAuction($profile) {
@@ -859,19 +889,6 @@ class Hypixel {
 		return $level;
 	}
 
-	// Gets guild level by exp
-	private function getGuildLevel($exp) {
-		$guildLevelTables = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000];
-		$level = 0;
-		for ($i = 0; ; $i++) {
-			$need = $i >= sizeof($guildLevelTables) ? $guildLevelTables[sizeof($guildLevelTables) - 1] : $guildLevelTables[$i];
-			$exp -= $need;
-			if ($exp < 0) return $level + 1 + $exp / $need;
-			else $level ++;
-		}
-		return -1;
-	}
-
 	// Clears the Minecraft formatting string of a string
 	private function getPlainString($formattedStr) {
 		$plainStr = str_replace(
@@ -879,8 +896,7 @@ class Hypixel {
 		, '', $formattedStr);
 		return $plainStr;
 	}
-	
-	
+
 	// Gets the accessibility of the Skyblock Profile API of player
 	private function isSkyblockProfileAccessible($profile) {
 		foreach(self::SKYBLOCK_SKILLS as $skill) {

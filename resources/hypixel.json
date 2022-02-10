@@ -9,6 +9,7 @@
 		"- murdermystery, mm",
 		"- duels, duel",
 		"- uhc",
+		"- pit, thepit",
 		"- megawalls, mw",
 		"- blitzsg, bsg, hungergames",
 		"- zombies, zb",
@@ -249,6 +250,14 @@
 				}
 			}
 		},
+		"pit": {
+			"layout": [
+				"%1$s 的天坑乱斗统计信息:",
+				"经验: %2$s | 精通: %3$s | 最高连杀: %4$s",
+				"击杀: %5$s | 助攻: %6$s | 死亡: %7$s",
+				"K/D: %8$s | K+A/D: %9$s"
+			]
+		},
 		"general": {
 			"layout": [
 				"%1$s 的 Hypixel 信息:",
@@ -267,8 +276,8 @@
 				"no_access": "玩家阻止获取",
 				"no_access_or_data": "玩家阻止获取或无数据",
 				"last_logout": "上次退出: %s",
-				"online": "● 在线时长: $s",
-				"status": "● 当前位置: %13$s%14$s%15$s"
+				"online": "● 在线时长: %s",
+				"status": "● 当前位置: %1$s%2$s%3$s"
 			}
 		},
 		"info": {
@@ -460,6 +469,7 @@
 		},
 		"maps": {
 			"all": "全部",
+			"none": "",
 
 			"Dead End": "穷途末路",
 			"Bad Blood": "坏血之宫",

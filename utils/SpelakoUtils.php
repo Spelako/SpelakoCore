@@ -64,7 +64,7 @@ class SpelakoUtils {
 	 * @return string 结果
 	 */
 	public static function formatTime(int|float|null $timestamp, bool $inSeconds = false, string $format = 'Y-m-d H:i', int|float $offset = 0) : string {
-		return gmdate($format, $inSeconds ? $timestamp : round($timestamp / 1000) + $offset);
+		return gmdate($format, $inSeconds ? round($timestamp) : round($timestamp / 1000) + $offset);
 	}
 
 	/**

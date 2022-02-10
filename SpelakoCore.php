@@ -14,8 +14,8 @@ require __DIR__.'/utils/FileSystem.php';
 require __DIR__.'/utils/SpelakoUtils.php';
 
 class SpelakoCore {
-	const VERSION = '3.0.0';
-	const LAST_UPDATED = '2022/1/29';
+	const VERSION = '22w06a';
+	const LAST_UPDATED = '2022/2/10';
 	const DEVELOPERS = 'github.com/orgs/Spelako/people';
 	const WEBSITE = 'spelako.github.io';
 
