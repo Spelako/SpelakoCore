@@ -822,13 +822,6 @@ class Hypixel {
 			default:
 				if(isset($args[2])) return SpelakoUtils::buildString($this->getUsage());
 
-				$src = SpelakoUtils::getURL(self::API_BASE_URL.'/guild', ['key' => $this->config->api_key, 'player' => $p['uuid']], 300);
-				if(!$src) return $this->getMessage('info.request_failed');
-				$result = json_decode($src, true);
-				if($result['success'] != true) return $this->getMessage('info.incomplete_json');
-				if($result['guild'] == null) return SpelakoUtils::buildString($this->getMessage('info.guild.guild_not_found'), [$p['displayname']]);
-				$g = $result['guild'];
-
 				$online = isset($p['lastLogout']) && ($p['lastLogout'] < $p['lastLogin']);
 				if($online) {
 					$src = SpelakoUtils::getURL(self::API_BASE_URL.'/status', ['key' => $this->config->api_key, 'uuid' => $p['uuid']], 10);
