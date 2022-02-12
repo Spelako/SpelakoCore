@@ -244,6 +244,22 @@ class Hypixel {
 						SpelakoUtils::div($p['stats']['SkyWars']['wins'], $p['stats']['SkyWars']['losses'])
 					]
 				);
+			/*
+			// 不想写了 想睡觉
+			case 'buildbattle':	
+			case 'bb':
+				return SpelakoUtils::buildString(
+					$this->getMessage('bb.layout'),
+					[
+						$rank.$p['displayname'],
+						number_format($p['stats']['UHC']['score']),
+						number_format($p['stats']['UHC']['coins']),
+						number_format($p['stats']['UHC']['wins']),
+						number_format($p['stats']['UHC']['kills']),
+						number_format($p['stats']['UHC']['deaths']),
+						SpelakoUtils::div($p['stats']['UHC']['kills'], $p['stats']['UHC']['deaths'])
+					]
+				);*/
 			case 'bedwars':
 			case 'bw':
 				if(empty($args[3])) {
@@ -395,7 +411,7 @@ class Hypixel {
 				]);
 			case 'zombies':
 			case 'zb':
-				$map = match(isset($args[3]) ? $args[3] : 'all') {
+				$map = match(isset($args[3]) ? $args[3] : 'fastView') {
 					'deadend', 'de' => [
 						'mapKeys' => ['_deadend', 'Dead End'], // 0: key for stats; 1: key for map display name
 						'bossKeys' => ['tnt', 'inferno', 'broodmother'],
@@ -411,9 +427,31 @@ class Hypixel {
 					'all' => [
 						'mapKeys' => ['', 'all']
 					],
+					'fastView' => [
+						'mapKeys' => ['', 'fastView']
+					],
 					default => null
 				};
 				if(is_null($map)) return $this->getMessage('zb.info.unknown_map');
+				if($map['mapKeys'][1] == 'fastView')
+					return SpelakoUtils::buildString(
+					$this->getMessage('zb.layout_fastView'),
+					[
+						$rank.$p['displayname'],
+						number_format($p['stats']['Arcade']['total_rounds_survived_zombies']),
+						number_format($p['stats']['Arcade']['wins_zombies']),
+						100 * SpelakoUtils::div($p['stats']['Arcade']['bullets_hit_zombies'], $p['stats']['Arcade']['bullets_shot_zombies']),
+						100 * SpelakoUtils::div($p['stats']['Arcade']['headshots_zombies'], $p['stats']['Arcade']['bullets_hit_zombies']),
+						$p['stats']['Arcade']['wins_zombies_deadend_normal'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_deadend_normal']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_deadend_normal'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_deadend_normal']).']'),
+						$p['stats']['Arcade']['wins_zombies_deadend_hard'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_deadend_hard']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_deadend_hard'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_deadend_hard']).']'),
+						$p['stats']['Arcade']['wins_zombies_deadend_rip'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_deadend_rip']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_deadend_rip'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_deadend_rip']).']'),
+						$p['stats']['Arcade']['wins_zombies_badblood_normal'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_badblood_normal']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_badblood_normal'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_badblood_normal']).']'),
+						$p['stats']['Arcade']['wins_zombies_badblood_hard'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_badblood_hard']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_badblood_hard'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_badblood_hard']).']'),
+						$p['stats']['Arcade']['wins_zombies_badblood_rip'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_badblood_rip']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_badblood_rip'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_badblood_rip']).']'),
+						$p['stats']['Arcade']['wins_zombies_alienarcadium_normal'] > 0 ? number_format($p['stats']['Arcade']['wins_zombies_alienarcadium_normal']) : ($p['stats']['Arcade']['total_rounds_survived_zombies_alienarcadium_normal'] == 0? '-':'['.number_format($p['stats']['Arcade']['best_round_zombies_alienarcadium_normal']).']'),
+						$footer
+					]
+				);
 
 				$difficulty = match($map['mapKeys'][0] == '_alienarcadium' ? 'normal' : (isset($args[4]) ? $args[4] : 'general')) {
 					'normal', 'norm' => ['_normal', 'normal'], // 0: key for stats; 1: key for map display name
@@ -825,7 +863,7 @@ class Hypixel {
 							SpelakoUtils::buildString(
 								$this->getMessage('general.placeholders.last_logout'),
 								[
-									SpelakoUtils::formatTime($p['lastLogout'], format:'Y-m-d H:i:s')
+									empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogout'], format:'Y-m-d H:i:s')
 								]
 							)
 						),
@@ -837,7 +875,8 @@ class Hypixel {
 								$status ? ($this->getMessage('maps.'.($status['map'] ?? 'none')) ?? (' '.$status['map'].' ')) : ''
 							]
 						),
-						$footer
+						$footer,
+						number_format($p['rewardScore'])
 					]
 				);
 		}
