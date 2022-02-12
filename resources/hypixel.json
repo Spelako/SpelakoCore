@@ -113,6 +113,18 @@
 				"胜场: %8$s | 败场: %9$s | W/L: %10$.3f"
 			]
 		},
+		"bb": {
+			"layout": [
+				"%1$s 的建筑大师统计信息:",
+				"聊天称号: %2$s (%3$s/%4$s) | 硬币: %5$s",
+				"游戏: %5$s | 胜场: $6$s",
+				"单人 1.8 - 单人 1.14 - 团队 - 高手 - 建筑猜猜乐",
+				"",
+				"",
+				""
+				
+			]
+		},
 		"bw": {
 			"layout": [
 				"%1$s 的起床战争%2$s统计信息:",
@@ -170,6 +182,15 @@
 			}
 		},
 		"zb": {
+			"layout_fastView": [
+				"%1$s 的僵尸末日全局 Fast View 信息:",
+				"生存总回合数: %2$s | 胜场: %3$s",
+				"命中率: %4$.1f%% | 爆头率 %5$.1f%%",
+				"胜场或[最佳回合]（普通/困难/安息）",
+				"穷途末路：%6$s/%7$s/%8$s",
+				"坏血之宫：%9$s/%10$s/%11$s",
+				"外星游乐园：%12$s"
+			],
 			"layout": [
 				"%1$s 的僵尸末日%2$s地图%3$s统计信息:",
 				"生存总回合数: %4$s | 胜场: %5$s | 最佳回合: %6$s",
@@ -220,6 +241,7 @@
 				"unknown_map": [
 					"未知的地图.",
 					"目前支持的地图可以是下列之一:",
+					"- all",
 					"- deadend, de",
 					"- badblood, bb",
 					"- alienarcadium, aa"
@@ -265,6 +287,7 @@
 				"成就点数: %4$s | 小游戏胜场: %5$s",
 				"完成任务: %6$s | 完成挑战: %7$s",
 				"获得硬币: %8$s | 使用语言: %9$s",
+				"每日看广告奖励当前连续领取: %16$s 天",
 				"最近游玩: %10$s",
 				"首次登录: %11$s",
 				"上次登录: %12$s",
@@ -311,8 +334,8 @@
 			"combat_3": "末地",
 			"mining_1": "黄金矿区",
 			"mining_2": "深层矿洞",
-			"mining_3": " Dwarven Mine ",
-			"mining_4": " Crystal Hollows ",
+			"mining_3": "矮人矿坑",
+			"mining_4": "水晶矿洞",
 			"foraging_1": "公园",
 			"dungeon_hub": "地牢大厅",
 			"dungeon": "地牢",
@@ -332,7 +355,7 @@
 			"teams_insane_slime": "双人史莱姆模式",
 			"solo_insane_lucky": "单挑幸运方块模式",
 			"teams_insane_lucky": "双人幸运方块模式",
-			"solo_insane_hunters_vs_beasts": "狩猎对决模式",
+			"solo_insane_hunters_vs_beasts": "兽猎对决模式",
 
 			"TNTRUN": "方块掘战",
 			"PVPRUN": "PVP 方块掘战",
@@ -392,10 +415,11 @@
 			"NORMAL_PARTY": "挑战模式 - 爆破模式",
 			"DEATHMATCH_PARTY": "挑战模式 - 团队死亡竞赛模式",
 
-			"BUILD_BATTLE_SOLO_NORMAL": "单人模式",
-			"BUILD_BATTLE_TEAMS_NORMAL": "团队模式",
-			"BUILD_BATTLE_SOLO_PRO": "高手模式",
-			"BUILD_BATTLE_GUESS_THE_BUILD": "建筑猜猜乐",
+			"SOLO_NORMAL": "单人模式 1.8",
+			"TEAMS_NORMAL": "团队模式",
+			"SOLO_PRO": "高手模式",
+			"SOLO_NORMAL_LATEST": "单人模式 1.14 ",
+			"GUESS_THE_BUILD": "建筑猜猜乐",
 
 			"SOLO": "单挑模式",
 			"TEAMS": "组队模式",
@@ -433,6 +457,8 @@
 			"TOWERWARS_TEAM_OF_TWO": "塔防战争双人模式",
 			
 			"PIXEL_PARTY": " Pixel Party ",
+			"INVADERS" : "Invaders",
+
 			"PIT": ""
 		},
 		"games": {
@@ -474,6 +500,8 @@
 			"Dead End": "穷途末路",
 			"Bad Blood": "坏血之宫",
 			"Alien Arcadium": "外星游乐园",
+			
+			"Guess The Build": "",
 
 			"Amazon": "亚马逊雨林",
 			"Waterfall": "瀑布",
@@ -605,6 +633,8 @@
 			"Atherrough Valley": "神魔之城",
 			"Arches": "失落山谷",
 			"Arathi": "远郊乡村"
+			
+			
 		},
 		"languages": {
 			"ENGLISH": "英语",
@@ -623,6 +653,20 @@
 			"CZECH": "捷克语",
 			"FINNISH": "芬兰语",
 			"GREEK": "希腊语"
+		},
+		"buildbattle_Rank":{
+			"Rookie": "初来乍到",
+			"Untrained": "未经雕琢",
+			"Amateur": "初窥门径",
+			"Apprentice": "学有所成",
+			"Experienced": "驾轻就熟",
+			"Seasoned": "历练老成",
+			"Trained": "技艺精湛",
+			"Skilled": "炉火纯青",
+			"Talented": "技惊四座",
+			"Professional": "巧夺天工",
+			"Expert": "闻名于世",
+			"Master": "名垂青史"
 		}
 	}
 }
