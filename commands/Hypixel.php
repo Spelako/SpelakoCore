@@ -233,7 +233,7 @@ class Hypixel {
 					$this->getMessage('sw.layout'),
 					[
 						$rank.$p['displayname'],
-						$this->getPlainString($p['stats']['SkyWars']['levelFormatted']),
+						$this->getPlainString($p['stats']['SkyWars']['levelFormatted']) ?? 1,
 						number_format($p['stats']['SkyWars']['coins']),
 						number_format($p['stats']['SkyWars']['assists']),
 						number_format($p['stats']['SkyWars']['kills']),
