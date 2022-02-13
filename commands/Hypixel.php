@@ -21,7 +21,6 @@ class Hypixel {
 
 	const SKYBLOCK_SKILLS = ['taming', 'farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting'];
 	const PARKOUR_LOBBY_CODE = ['mainLobby2017', 'Bedwars', 'Skywars', 'SkywarsAug2017', 'ArcadeGames', 'MurderMystery', 'TNT', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'MegaWalls', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
-	const PARKOUR_LOBBY_ATTRIB = ['main', 'bw', 'sw', 'sw2017.8', 'arcade', 'mm', 'tnt', 'uhc', 'SpeedUHC', 'Prototype', 'BuildBattle', 'Housing', 'TruePVPParkour', 'mw', 'BlitzLobby', 'Warlords', 'SuperSmash', 'CopsnCrims', 'Duels', 'Legacy', 'SkyClash', 'Tourney'];
 	const PARKOUR_LOBBY_NAME = ['主大厅 2017', '起床战争', '空岛战争', '空岛战争 2017.8', '街机游戏', '密室杀手', '掘战游戏', '极限生存冠军', '速战极限生存', '游戏实验室', '建筑大师', '家园世界', 'True PVP Parkour', '超级战墙', '闪电饥饿游戏' ,'战争领主', '星碎英雄', '警匪大战' ,'决斗游戏', '经典游戏', '空岛竞技场', '竞赛殿堂'];
 	const PARKOUR_LOBBY_CHECKPOINT = [2, 3, -1, 3, 6, 3, 3, 2, 1, 4, 3, 7, -1, 3, 0, 2, -1, 4, 3, 2, -1, 3];
 
@@ -63,10 +62,10 @@ class Hypixel {
 		$p = $result['player'];
 		// TO FIX: see whether an "unset($result)" is necessary
 
-		$rank = '';
 		if(isset($p['rank']) && $p['rank'] != 'NONE' && $p['rank'] != 'NORMAL') $rank = '['.$p['rank'].'] ';
-		if(isset($p['monthlyPackageRank']) && $p['monthlyPackageRank'] != 'NONE') $rank = '[MVP++] ';
-		if(isset($p['newPackageRank']) && $p['newPackageRank'] != 'NONE') $rank = '['.str_replace('_PLUS', '+', $p['newPackageRank']).'] ';
+		else if(isset($p['monthlyPackageRank']) && $p['monthlyPackageRank'] != 'NONE') $rank = '[MVP++] ';
+		else if(isset($p['newPackageRank']) && $p['newPackageRank'] != 'NONE') $rank = '['.str_replace('_PLUS', '+', $p['newPackageRank']).'] ';
+		else $rank = '';
 
 		$footer = SpelakoUtils::buildString(
 			$this->getMessage('info.learn_more'),
@@ -95,6 +94,12 @@ class Hypixel {
 				} while($g['exp'] >= 0);
 				$level += $g['exp'] / $need;
 
+				$prefGames = $this->getMessage('guild.placeholders.none');
+				if($g['preferredGames']) {
+					foreach($g['preferredGames'] as $k => $game) $g['preferredGames'][$k] = $this->getMessage('games.'.$game) ?? (' '.$game.' ');
+					$prefGames = implode(', ', $g['preferredGames']);
+				}
+
 				return SpelakoUtils::buildString(
 					$this->getMessage('guild.layout'),
 					[
@@ -104,7 +109,8 @@ class Hypixel {
 						$level,
 						$this->getPlainString($g['tag']),
 						count($g['members']),
-						$g['achievements']['ONLINE_PLAYERS']
+						$g['achievements']['ONLINE_PLAYERS'],
+						$prefGames
 					]
 				);
 			case 'blitzsg':
@@ -724,8 +730,8 @@ class Hypixel {
 				if ($r == 'ERROR_RECENT_GAMES_NOT_FOUND') return sprintf('玩家 %s 没有最近的游戏, 或在 API 设置中禁止了此请求.', $p['displayname']);
 				$placeholder = array();
 				$total = count($r);
-				$totPages = ceil ($total / 5);
-				$curPage = ($args[3] > $totPages) ? $totPages : (int)$args[3];
+				$totPages = ceil($total / 5);
+				$curPage = min($totPages, intval($args[3] ?? 1));
 				if($curPage < 1) $curPage = 1;
 				for($i = ($curPage - 1) * 5; $i < $curPage * 5 && $i < $total; $i ++) {
 					array_push($placeholder, SpelakoUtils::buildString([
@@ -733,9 +739,9 @@ class Hypixel {
 						'	开始时间: %4$s',
 						$r[$i]['ended'] ? '	结束时间: %5$s' : '	● 游戏进行中...'
 					], [
-						$this->getMessage('games.'.$r[$i]['gameType']) ?? (' '.$status['gameType'].' '),
-						$this->getMessage('modes.'.$r[$i]['mode']) ?? (' '.$status['mode'].' '),
-						$this->getMessage('maps.'.$r[$i]['map']) ?? (' '.$status['map'].' '),
+						$this->getMessage('games.'.$r[$i]['gameType']) ?? (' '.$r[$i]['gameType'].' '),
+						$this->getMessage('modes.'.$r[$i]['mode']) ?? (' '.$r[$i]['mode'].' '),
+						$this->getMessage('maps.'.$r[$i]['map']) ?? (' '.$r[$i]['map'].' '),
 						SpelakoUtils::formatTime($r[$i]['date'], format:'Y-m-d H:i:s'),
 						$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], format:'Y-m-d H:i:s') : ''
 					]));
