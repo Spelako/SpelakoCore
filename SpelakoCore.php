@@ -94,7 +94,7 @@ class SpelakoCore {
 	public function getUserLastExecutions() : array {
 		return $this->userLastExecutions;
 	}
-	
+
 	/**
 	 * 执行一条命令
 	 *

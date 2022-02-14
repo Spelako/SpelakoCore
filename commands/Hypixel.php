@@ -250,22 +250,21 @@ class Hypixel {
 						SpelakoUtils::div($p['stats']['SkyWars']['wins'], $p['stats']['SkyWars']['losses'])
 					]
 				);
-			/*
-			// 不想写了 想睡觉
 			case 'buildbattle':	
 			case 'bb':
 				return SpelakoUtils::buildString(
 					$this->getMessage('bb.layout'),
 					[
 						$rank.$p['displayname'],
-						number_format($p['stats']['UHC']['score']),
-						number_format($p['stats']['UHC']['coins']),
-						number_format($p['stats']['UHC']['wins']),
-						number_format($p['stats']['UHC']['kills']),
-						number_format($p['stats']['UHC']['deaths']),
-						SpelakoUtils::div($p['stats']['UHC']['kills'], $p['stats']['UHC']['deaths'])
+						number_format($p['stats']['BuildBattle']['games_played']),
+						number_format($p['stats']['BuildBattle']['score']),
+						number_format($p['stats']['BuildBattle']['wins']),
+						number_format($p['stats']['BuildBattle']['wins_solo_normal'] + $p['stats']['BuildBattle']['wins_solo_normal_latest']),
+						number_format($p['stats']['BuildBattle']['wins_teams_normal']),
+						number_format($p['stats']['BuildBattle']['wins_solo_pro']),
+						number_format($p['stats']['BuildBattle']['wins_guess_the_build'])
 					]
-				);*/
+				);
 			case 'bedwars':
 			case 'bw':
 				if(empty($args[3])) {
@@ -317,9 +316,6 @@ class Hypixel {
 				);
 			case 'murdermystery':
 			case 'mm':
-				if(isset($args[3][0])) {
-					
-				}
 				if($args[3][0] >= 1 && $args[3][0] <= 4 && $args[3][1] == null) $modeCode = $args[3];
 				else if(ord($args[3][0]) >= ord('a') && ord($args[3][0]) <= ord('u') && $args[3][1] == null) $mapCode = ord($args[3]);
 				else if($args[3][0] >= 1 && $args[3][0] <= 4 && ord($args[3][1]) >= ord('a') && ord($args[3][1]) <= ord('u') && $args[3][2] == null) {
@@ -707,12 +703,25 @@ class Hypixel {
 						
 				}
 			case 'pit':
-			case 'thepit': 
+			case 'thepit':
+				// 在等级 10 * k 至 10 * (k + 1) 时, 升一级所需经验
+				$expReqPhased = [15, 30, 50, 75, 125, 300, 600, 800, 900, 1000, 1200, 1500];
+				// 在精通 k 时, 升一级所需经验需要乘以的倍数
+				$presMultipl = [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 45, 50, 75, 100, 101, 101, 101, 101, 101];
+				$level = 0;
+				foreach($presMultipl as $multiplier) foreach($expReqPhased as $expRequired) {
+					for($i = 0; $i < 10; $i ++) {
+						if($p['stats']['Pit']['profile']['xp'] < $expRequired * $multiplier) break 3;
+						$p['stats']['Pit']['profile']['xp'] -= $expRequired * $multiplier;
+						$level ++;
+					}
+				}
+
 				return SpelakoUtils::buildString(
 					$this->getMessage('pit.layout'),
 					[
 						$rank.$p['displayname'],
-						number_format($p['stats']['Pit']['profile']['xp']),
+						$level % 120,
 						count($p['stats']['Pit']['profile']['prestiges'] ?? []),
 						number_format($p['stats']['Pit']['pit_stats_ptl']['max_streak']),
 						number_format($p['stats']['Pit']['pit_stats_ptl']['kills']),
@@ -724,40 +733,45 @@ class Hypixel {
 				);
 			case 'r':
 			case 'recent':
-				$r = $this->fetchRecentGames($p['uuid']);
-				if ($r == 'ERROR_REQUEST_FAILED') return '查询请求发送超时或失败, 请稍后再试.';
-				if ($r == 'ERROR_INCOMPLETE_JSON') return '查询结果接收失败, 请稍后再试.';
-				if ($r == 'ERROR_RECENT_GAMES_NOT_FOUND') return sprintf('玩家 %s 没有最近的游戏, 或在 API 设置中禁止了此请求.', $p['displayname']);
+				$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => $this->config->api_key, 'uuid' => $p['uuid']], 45);
+				if(!$src) return $this->getMessage('info.request_failed');
+				$result = json_decode($src, true);
+				if($result['success'] != true) return $this->getMessage('info.incomplete_json');
+				if($result['games'] == null) return SpelakoUtils::buildString($this->getMessage('recent.info.no_data_or_access'), $p['displayname']);
+				$r = $result['games'];
+
 				$placeholder = array();
 				$total = count($r);
 				$totPages = ceil($total / 5);
 				$curPage = min($totPages, intval($args[3] ?? 1));
 				if($curPage < 1) $curPage = 1;
 				for($i = ($curPage - 1) * 5; $i < $curPage * 5 && $i < $total; $i ++) {
-					array_push($placeholder, SpelakoUtils::buildString([
-						'# %1$s%2$s%3$s',
-						'	开始时间: %4$s',
-						$r[$i]['ended'] ? '	结束时间: %5$s' : '	● 游戏进行中...'
-					], [
-						$this->getMessage('games.'.$r[$i]['gameType']) ?? (' '.$r[$i]['gameType'].' '),
-						$this->getMessage('modes.'.$r[$i]['mode']) ?? (' '.$r[$i]['mode'].' '),
-						$this->getMessage('maps.'.$r[$i]['map']) ?? (' '.$r[$i]['map'].' '),
-						SpelakoUtils::formatTime($r[$i]['date'], format:'Y-m-d H:i:s'),
-						$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], format:'Y-m-d H:i:s') : ''
-					]));
+					array_push($placeholder, SpelakoUtils::buildString(
+						$this->getMessage($r[$i]['ended'] ? 'recent.placeholders.ended_game' : 'recent.placeholders.ongoing_game'),
+						[
+							$this->getMessage('games.'.$r[$i]['gameType']) ?? (' '.$r[$i]['gameType'].' '),
+							$this->getMessage('modes.'.$r[$i]['mode']) ?? (' '.$r[$i]['mode'].' '),
+							$this->getMessage('maps.'.$r[$i]['map']) ?? (' '.$r[$i]['map'].' '),
+							SpelakoUtils::formatTime($r[$i]['date'], format:'Y-m-d H:i:s'),
+							$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], format:'Y-m-d H:i:s') : ''
+						]
+					));
 				}
-				return SpelakoUtils::buildString([
-					'%1$s 的最近游玩的游戏:',
-					'%2$s',
-					'当前展示 %3$d/%4$d 页.',
-					$totPages > 1 ? '使用 /hyp %5$s r <页数> 来查看具体页数的游戏数据.' : ''
-				], [
-					$rank.$p['displayname'],
-					SpelakoUtils::buildString($placeholder),
-					$curPage,
-					$totPages,
-					$p['displayname'],
-				]);
+				return SpelakoUtils::buildString(
+					$this->getMessage('recent.layout'),
+					[
+						$rank.$p['displayname'],
+						SpelakoUtils::buildString($placeholder),
+						$totPages == 1 ? '' : SpelakoUtils::buildString(
+							$this->getMessage('recent.placeholders.page_indicator'),
+							[
+								$curPage,
+								$totPages,
+								$p['displayname']
+							]
+						)
+					]
+				);
 			case 'p':
 			case 'parkour':
 				$lobby = $args[3];
@@ -783,15 +797,14 @@ class Hypixel {
 					]);
 				}
 				else if($lobby >= 1 && $lobby <= 22) {
-					$lobby--;
+					$lobby --;
 					$placeholder = array();
 					for ($i = 0; $i <= self::PARKOUR_LOBBY_CHECKPOINT[$lobby]; $i ++) {
 						$checkPointTime = $p['parkourCheckpointBests'][self::PARKOUR_LOBBY_CODE[$lobby]][$i];
-						// if ($checkPointTime == null) break;
 						array_push($placeholder, SpelakoUtils::buildString([
 						'%1$d. %2$s',
 						], [
-							$i+1,
+							$i + 1,
 							$checkPointTime != null ? SpelakoUtils::formatTime($checkPointTime, false, 'i:s').'.'. sprintf('%03s', $checkPointTime % 1000) : '未完成'
 						]));
 					}
@@ -805,7 +818,7 @@ class Hypixel {
 						self::PARKOUR_LOBBY_NAME[$lobby],
 						SpelakoUtils::buildString($placeholder),
 						($parkourTime = $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']) != null ? SpelakoUtils::formatTime($parkourTime, false, 'i:s').'.'. sprintf('%03s', $parkourTime % 1000) : '未完成' ,
-						SpelakoUtils::formatTime($p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook']+$p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeStart'], format:'Y-m-d H:i:s')
+						SpelakoUtils::formatTime($p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeTook'] + $p['parkourCompletions'][self::PARKOUR_LOBBY_CODE[$lobby]][0]['timeStart'], format:'Y-m-d H:i:s')
 					]);
 				}
 				else {
@@ -879,15 +892,6 @@ class Hypixel {
 					]
 				);
 		}
-	}
-
-	private function fetchRecentGames($playerUuid) {
-		$src = SpelakoUtils::getURL(self::API_BASE_URL.'/recentgames', ['key' => $this->config->api_key, 'uuid' => $playerUuid], 45);
-		if(!$src) return 'ERROR_REQUEST_FAILED';
-		$result = json_decode($src, true);
-		if($result['success'] != true) return 'ERROR_INCOMPLETE_JSON';
-		if($result['games'] == null) return 'ERROR_RECENT_GAMES_NOT_FOUND';
-		return $result['games'];
 	}
 	
 	private function fetchSkyblockAuction($profile) {
