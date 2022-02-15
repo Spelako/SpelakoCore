@@ -3,8 +3,8 @@ Spelako 是一个使用命令操作的交互式机器人, 提供 Hypixel 统计�
 
 本仓库 SpelakoCore 为 Spelako 核心代码. 欲了解更多信息, 请阅读[文档](https://spelako.github.io/).
 
-## 重构中...
-Spelako Project 的所有项目正在位于新的主版本 (major version) 上重构. 处于本仓库主分支上的仍在开发状态的 SpelakoCore 3.0 还未完成. 对于现在, 请使用 Releases 页面的稳定版本 2.5.0.
+## SpelakoCore 3.0 快照已发布
+SpelakoCore 22w07a 是 3.0 的最新快照. 你可以查看文档来了解如何部署 Spelako 22w07a.
 
 ## 许可证
 ```
