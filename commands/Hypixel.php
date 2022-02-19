@@ -568,7 +568,7 @@ class Hypixel {
 									$item['item_name'],
 									$item['tier'],
 									number_format($item['starting_bid']),
-									SpelakoUtils::formatTime($item['end']),
+									SpelakoUtils::formatTime($item['end'], offset: $this->config->timezone_offset),
 									$item['claimed_bidders'] ? '已被购买' : (time() < $item['end'] / 1000 ? '进行中' : '已结束, 无买主')
 								])
 								: SpelakoUtils::buildString([
@@ -584,7 +584,7 @@ class Hypixel {
 									number_format($item['highest_bid_amount']),
 									count($item['bids']),
 									number_format($item['starting_bid']),
-									SpelakoUtils::formatTime($item['end']),
+									SpelakoUtils::formatTime($item['end'], offset: $this->config->timezone_offset),
 									time() < $item['end'] / 1000 ? '进行中' : '已结束'
 								])
 							);
@@ -737,7 +737,7 @@ class Hypixel {
 				if(!$src) return $this->getMessage('info.request_failed');
 				$result = json_decode($src, true);
 				if($result['success'] != true) return $this->getMessage('info.incomplete_json');
-				if($result['games'] == null) return SpelakoUtils::buildString($this->getMessage('recent.info.no_data_or_access'), $p['displayname']);
+				if($result['games'] == null) return SpelakoUtils::buildString($this->getMessage('recent.info.no_data_or_access'), [$p['displayname']]);
 				$r = $result['games'];
 
 				$placeholder = array();
@@ -752,8 +752,8 @@ class Hypixel {
 							$this->getMessage('games.'.$r[$i]['gameType']) ?? (' '.$r[$i]['gameType'].' '),
 							$this->getMessage('modes.'.$r[$i]['mode']) ?? (' '.$r[$i]['mode'].' '),
 							$this->getMessage('maps.'.$r[$i]['map']) ?? (' '.$r[$i]['map'].' '),
-							SpelakoUtils::formatTime($r[$i]['date'], format:'Y-m-d H:i:s'),
-							$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], format:'Y-m-d H:i:s') : ''
+							SpelakoUtils::formatTime($r[$i]['date'], offset: $this->config->timezone_offset),
+							$r[$i]['ended'] ? SpelakoUtils::formatTime($r[$i]['ended'], offset: $this->config->timezone_offset) : ''
 						]
 					));
 				}
@@ -861,8 +861,8 @@ class Hypixel {
 						empty($p['userLanguage']) ? $this->getMessage('general.placeholders.no_access') : ($this->getMessage('languages.'.$p['userLanguage']) ?? (' '.$p['userLanguage'].' ')),
 						empty($p['mostRecentGameType']) ? $this->getMessage('general.placeholders.no_access_or_data') : ($this->getMessage('games.'.$p['mostRecentGameType']) ?? (' '.$p['mostRecentGameType'].' ')),
 						// TO TEST OUT THIS
-						SpelakoUtils::formatTime($p['firstLogin'], format:'Y-m-d H:i:s'),
-						empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogin'], format:'Y-m-d H:i:s'),
+						SpelakoUtils::formatTime($p['firstLogin'], offset: $this->config->timezone_offset),
+						empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogin'], offset: $this->config->timezone_offset),
 						$online ? (
 							SpelakoUtils::buildString(
 								$this->getMessage('general.placeholders.online'),
@@ -875,7 +875,7 @@ class Hypixel {
 							SpelakoUtils::buildString(
 								$this->getMessage('general.placeholders.last_logout'),
 								[
-									empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogout'], format:'Y-m-d H:i:s')
+									empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogout'], offset: $this->config->timezone_offset)
 								]
 							)
 						),
