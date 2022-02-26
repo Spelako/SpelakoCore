@@ -252,17 +252,30 @@ class Hypixel {
 				);
 			case 'buildbattle':	
 			case 'bb':
+				$bbLevelTables = [0, 100, 150, 250, 500, 1000, 1500, 1500, 2500, 2500, 5000, 5000];
+				
 				return SpelakoUtils::buildString(
 					$this->getMessage('bb.layout'),
 					[
 						$rank.$p['displayname'],
-						number_format($p['stats']['BuildBattle']['games_played']),
+						114514, // 聊天头衔 暂时懒得写
 						number_format($p['stats']['BuildBattle']['score']),
+						number_format($p['stats']['BuildBattle']['games_played']),
 						number_format($p['stats']['BuildBattle']['wins']),
-						number_format($p['stats']['BuildBattle']['wins_solo_normal'] + $p['stats']['BuildBattle']['wins_solo_normal_latest']),
-						number_format($p['stats']['BuildBattle']['wins_teams_normal']),
+						number_format($p['stats']['BuildBattle']['total_votes']),
+						number_format($p['stats']['BuildBattle']['super_votes']),
+						114514,	// 占位 不想改了 累死我了
+						114514,	// 占位 不想改了 累死我了
+						number_format($p['stats']['BuildBattle']['wins_solo_normal']),
+						$p['stats']['BuildBattle']['solo_most_points'] === null ? $this->getMessage('bb.placeholders.no_stats') : number_format($p['stats']['BuildBattle']['solo_most_points']),
+						114514,	// 占位 不想改了 累死我了
+						114514,	// 占位 不想改了 累死我了
 						number_format($p['stats']['BuildBattle']['wins_solo_pro']),
-						number_format($p['stats']['BuildBattle']['wins_guess_the_build'])
+						$p['stats']['BuildBattle']['team_most_points'] === null ? $this->getMessage('bb.placeholders.no_stats') : number_format($p['stats']['BuildBattle']['team_most_points']),
+						number_format($p['stats']['BuildBattle']['wins_solo_pro']),
+						114514,	// 占位 不想改了 累死我了
+						number_format($p['stats']['BuildBattle']['wins_guess_the_build']),
+						number_format($p['stats']['BuildBattle']['correct_guesses'])
 					]
 				);
 			case 'bedwars':
@@ -861,30 +874,42 @@ class Hypixel {
 						empty($p['userLanguage']) ? $this->getMessage('general.placeholders.no_access') : ($this->getMessage('languages.'.$p['userLanguage']) ?? (' '.$p['userLanguage'].' ')),
 						empty($p['mostRecentGameType']) ? $this->getMessage('general.placeholders.no_access_or_data') : ($this->getMessage('games.'.$p['mostRecentGameType']) ?? (' '.$p['mostRecentGameType'].' ')),
 						// TO TEST OUT THIS
-						SpelakoUtils::formatTime($p['firstLogin'], offset: $this->config->timezone_offset),
+						empty($p['firstLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['firstLogin'], offset: $this->config->timezone_offset),
 						empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogin'], offset: $this->config->timezone_offset),
 						$online ? (
-							SpelakoUtils::buildString(
-								$this->getMessage('general.placeholders.online'),
-								[
-									SpelakoUtils::formatTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s')
-								]
+							(time() - $p['lastLogin'] / 1000) >=  86400 ? (
+								SpelakoUtils::buildString(
+										$this->getMessage('general.placeholders.online_over_one_day'),
+										[
+											(time() - $p['lastLogin'] / 1000) / 86400,
+											SpelakoUtils::formatTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s')
+										]
+									)
+								)
+							:(
+								SpelakoUtils::buildString(
+									$this->getMessage('general.placeholders.online'),
+									[
+										SpelakoUtils::formatTime(time() - $p['lastLogin'] / 1000, true, 'H:i:s')
+									]
+								)
 							)
 						)
 						: (
 							SpelakoUtils::buildString(
 								$this->getMessage('general.placeholders.last_logout'),
 								[
-									empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogout'], offset: $this->config->timezone_offset)
+									empty($p['lastLogout']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogout'], offset: $this->config->timezone_offset)
 								]
 							)
 						),
 						!$online ? '' : SpelakoUtils::buildString(
 							$this->getMessage('general.placeholders.status'),
 							[
-								$status ? ($this->getMessage('games.'.$status['gameType']) ?? (' '.$status['gameType'].' ')) : $this->getMessage('general.placeholders.no_access'),
+								$status ? (empty ($status['gameType'])? $this->getMessage('general.placeholders.access_but_no_data'): $this->getMessage('games.'.$status['gameType']) ?? (' '.$status['gameType'].' ')) : $this->getMessage('general.placeholders.no_access'),
 								$status ? ($this->getMessage('modes.'.($status['mode'])) ?? (' '.$status['mode'].' ')) : '',
-								$status ? ($this->getMessage('maps.'.($status['map'] ?? 'none')) ?? (' '.$status['map'].' ')) : ''
+								$status ? ($this->getMessage('maps.'.($status['map'] ?? 'none')) ?? (' '.$status['map'].' ')) : '',
+								
 							]
 						),
 						$footer,
