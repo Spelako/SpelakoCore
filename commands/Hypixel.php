@@ -252,28 +252,38 @@ class Hypixel {
 				);
 			case 'buildbattle':	
 			case 'bb':
-				$bbLevelTables = [0, 100, 150, 250, 500, 1000, 1500, 1500, 2500, 2500, 5000, 5000];
-				
+				$bbLevelTables = [100, 150, 250, 500, 1000, 1500, 1500, 2500, 2500, 5000, 5000, 1145141919810];
+				$bbLevelNext = ["100", "250", "500", "1,000", "2,000", "3,500", "5,000", "7,500", "10,000", "15,000", "2,0000", "排行榜前十名"];
+				$bbChatRankName = ["初来乍到", "未经雕琢", "初窥门径", "学有所成", "驾轻就熟", "历练老成", "技艺精湛", "炉火纯青", "技惊四座", "巧夺天工", "闻名于世", "名垂青史"];
+				$bbTop10 = ["建筑师"];
+				$scoreTemp = $p['stats']['BuildBattle']['score'];
+				$ichatRank = 0;
+				for ($ichatRank = 0; $ichatRank <12 && $scoreTemp >= 0 ;$ichatRank++ )
+					$scoreTemp -= $bbLevelTables[$ichatRank];
+				$ichatRank -- ;
+				printf("%d",$ichatRank);
+				$chatRank = $bbChatRankName[$ichatRank];
+				// 对于前十名的判断待完成
 				return SpelakoUtils::buildString(
 					$this->getMessage('bb.layout'),
 					[
 						$rank.$p['displayname'],
-						114514, // 聊天头衔 暂时懒得写
+						$chatRank,
 						number_format($p['stats']['BuildBattle']['score']),
 						number_format($p['stats']['BuildBattle']['games_played']),
 						number_format($p['stats']['BuildBattle']['wins']),
 						number_format($p['stats']['BuildBattle']['total_votes']),
 						number_format($p['stats']['BuildBattle']['super_votes']),
-						114514,	// 占位 不想改了 累死我了
-						114514,	// 占位 不想改了 累死我了
+						$bbLevelNext[$ichatRank],
+						number_format($p['stats']['BuildBattle']['coins']),
 						number_format($p['stats']['BuildBattle']['wins_solo_normal']),
-						$p['stats']['BuildBattle']['solo_most_points'] === null ? $this->getMessage('bb.placeholders.no_stats') : number_format($p['stats']['BuildBattle']['solo_most_points']),
+						$p['stats']['BuildBattle']['solo_most_points'] === null ? ($p['stats']['BuildBattle']['wins_solo_normal'] === null ? $this->getMessage('bb.placeholders.no_play_or_no_stats'): $this->getMessage('bb.placeholders.no_stats')) :  number_format($p['stats']['BuildBattle']['solo_most_points']),
 						114514,	// 占位 不想改了 累死我了
 						114514,	// 占位 不想改了 累死我了
+						number_format($p['stats']['BuildBattle']['wins_teams_normal']),
+						$p['stats']['BuildBattle']['teams_most_points'] === null ? ($p['stats']['BuildBattle']['wins_teams_normal'] === null ? $this->getMessage('bb.placeholders.no_play_or_no_stats'): $this->getMessage('bb.placeholders.no_stats')) : number_format($p['stats']['BuildBattle']['teams_most_points']),
 						number_format($p['stats']['BuildBattle']['wins_solo_pro']),
-						$p['stats']['BuildBattle']['team_most_points'] === null ? $this->getMessage('bb.placeholders.no_stats') : number_format($p['stats']['BuildBattle']['team_most_points']),
-						number_format($p['stats']['BuildBattle']['wins_solo_pro']),
-						114514,	// 占位 不想改了 累死我了
+						number_format($p['stats']['BuildBattle']['wins_halloween']),	
 						number_format($p['stats']['BuildBattle']['wins_guess_the_build']),
 						number_format($p['stats']['BuildBattle']['correct_guesses'])
 					]
