@@ -81,7 +81,7 @@ class Hypixel {
 				if(!$src) return $this->getMessage('info.request_failed');
 				$result = json_decode($src, true);
 				if($result['success'] != true) return $this->getMessage('info.incomplete_json');
-				if($result['guild'] == null) return SpelakoUtils::buildString($this->getMessage('info.guild.guild_not_found'), [$p['displayname']]);
+				if($result['guild'] == null) return SpelakoUtils::buildString($this->getMessage('guild.info.guild_not_found'), [$p['displayname']]);
 				$g = $result['guild'];
 
 				$guildLevelTables = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000];
