@@ -334,6 +334,7 @@
 			],
 			"placeholders": {
 				"no_access": "玩家阻止获取",
+				"no_data": "无公开数据",
 				"no_access_or_data": "玩家阻止获取或无数据",
 				"access_but_no_data": "获取成功, 无数据, 可能是由于玩家已离线, 数据未被及时更新",
 				"last_logout": "上次退出: %s",

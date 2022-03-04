@@ -881,7 +881,7 @@ class Hypixel {
 						number_format($p['achievements']['general_quest_master']),
 						number_format($p['achievements']['general_challenger']),
 						number_format($p['achievements']['general_coins']),
-						empty($p['userLanguage']) ? $this->getMessage('general.placeholders.no_access') : ($this->getMessage('languages.'.$p['userLanguage']) ?? (' '.$p['userLanguage'].' ')),
+						empty($p['userLanguage']) ? $this->getMessage('general.placeholders.no_data') : ($this->getMessage('languages.'.$p['userLanguage']) ?? (' '.$p['userLanguage'].' ')),
 						empty($p['mostRecentGameType']) ? $this->getMessage('general.placeholders.no_access_or_data') : ($this->getMessage('games.'.$p['mostRecentGameType']) ?? (' '.$p['mostRecentGameType'].' ')),
 						// TO TEST OUT THIS
 						empty($p['firstLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['firstLogin'], offset: $this->config->timezone_offset),
