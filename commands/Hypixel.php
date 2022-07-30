@@ -922,7 +922,8 @@ class Hypixel {
 								
 							]
 						),
-						$footer
+						$footer,
+						number_format($p['giftingMeta']['ranksGiven'])
 					]
 				);
 		}
