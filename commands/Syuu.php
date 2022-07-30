@@ -45,7 +45,6 @@ class Syuu {
 	}
 
 	public function execute(array $args) {
-		if(empty($args[1])) return $this->getMessage('default.layout');
 		switch($args[1]) {
 			case 'player':
 			case 'user':
@@ -95,6 +94,8 @@ class Syuu {
 						$this->core::WEBSITE
 					]
 				);
+			default: return $this->getMessage('default.layout');
+				
 		}
 	}
 

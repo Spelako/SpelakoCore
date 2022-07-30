@@ -324,7 +324,6 @@
 				"成就点数: %4$s | 小游戏胜场: %5$s",
 				"完成任务: %6$s | 完成挑战: %7$s",
 				"获得硬币: %8$s | 使用语言: %9$s",
-				"每日看广告奖励当前连续领取: %16$s 天",
 				"最近游玩: %10$s",
 				"首次登录: %11$s",
 				"上次登录: %12$s",
@@ -418,7 +417,7 @@
 			"BEDWARS_FOUR_FOUR_VOIDLESS": " 4v4v4v4 无虚空模式",
 			"BEDWARS_EIGHT_TWO_ARMED": "双人枪械模式",
 			"BEDWARS_FOUR_FOUR_ARMED": " 4v4v4v4 枪械模式",
-			"BEDWARS_EIGHT TWO_LUCKY": "双人幸运方块模式",
+			"BEDWARS_EIGHT_TWO_LUCKY": "双人幸运方块模式",
 			"BEDWARS_FOUR_FOUR_LUCKY": " 4v4v4v4 幸运方块模式",
 			"BEDWARS_EIGHT TWO_UNDERWORLD": "双人 Under World 模式",
 			"BEDWARS_FOUR_FOUR_UNDERWORLD": " 4v4v4v4 Under World 模式",
@@ -499,7 +498,9 @@
 			"PIXEL_PARTY": " Pixel Party ",
 			"INVADERS" : "Invaders",
 
-			"PIT": ""
+			"PIT": "",
+			"wool_wars_two_four": " 4v4 模式",
+			"DROPPER": "心跳水立方"
 		},
 		"games": {
 			"QUAKECRAFT": "未来射击",
@@ -531,6 +532,7 @@
 			"PIT": "天坑乱斗",
 			"REPLAY": "回放系统",
 			"SMP": "Hypixel SMP",
+			"WOOL_GAMES": "羊毛战争",
 			"MAIN": "主"
 		},
 		"maps": {
@@ -672,9 +674,9 @@
 			"Black Temple": "黑岩神寺",
 			"Atherrough Valley": "神魔之城",
 			"Arches": "失落山谷",
-			"Arathi": "远郊乡村"
+			"Arathi": "远郊乡村",
 			
-			
+			"Dropper": ""
 		},
 		"languages": {
 			"ENGLISH": "英语",
