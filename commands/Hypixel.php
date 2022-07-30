@@ -295,9 +295,9 @@ class Hypixel {
 					$modeName = $this->getMessage('modes.all');
 				}
 				else if(
-					($modeName = $this->getMessage('modes.bedwars_'.$args[3]))
+					($modeName = $this->getMessage('modes.BEDWARS_'.strtoupper($args[3])))
 					|| $modeName = $this->getMessage(
-						'modes.bedwars_'.($args[3] = str_replace(
+						'modes.BEDWARS_'.strtoupper($args[3] = str_replace(
 							['solo', 'doubles', '3v3v3v3', '4v4v4v4', '4v4', '1', '2', '3', '4', '8'],
 							['eight_one', 'eight_two', 'four_three', 'four_four', 'two_four', 'one', 'two', 'three', 'four', 'eight'],
 							$args[3]
@@ -922,8 +922,7 @@ class Hypixel {
 								
 							]
 						),
-						$footer,
-						number_format($p['rewardScore'])
+						$footer
 					]
 				);
 		}
