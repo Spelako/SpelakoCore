@@ -60,7 +60,6 @@ class Hypixel {
 		if($result['success'] != true) return $this->getMessage('info.incomplete_json');
 		if($result['player'] == null) return $this->getMessage('info.player_not_found');
 		$p = $result['player'];
-		// TO FIX: see whether an "unset($result)" is necessary
 
 		if(isset($p['rank']) && $p['rank'] != 'NONE' && $p['rank'] != 'NORMAL') $rank = '['.$p['rank'].'] ';
 		else if(isset($p['monthlyPackageRank']) && $p['monthlyPackageRank'] != 'NONE') $rank = '[MVP++] ';
@@ -260,7 +259,7 @@ class Hypixel {
 				$ichatRank = 0;
 				for ($ichatRank = 0; $ichatRank <12 && $scoreTemp >= 0 ;$ichatRank++ )
 					$scoreTemp -= $bbLevelTables[$ichatRank];
-				$ichatRank -- ;
+				$ichatRank --;
 				printf("%d",$ichatRank);
 				$chatRank = $bbChatRankName[$ichatRank];
 				// 对于前十名的判断待完成
@@ -883,7 +882,6 @@ class Hypixel {
 						number_format($p['achievements']['general_coins']),
 						empty($p['userLanguage']) ? $this->getMessage('general.placeholders.no_data') : ($this->getMessage('languages.'.$p['userLanguage']) ?? (' '.$p['userLanguage'].' ')),
 						empty($p['mostRecentGameType']) ? $this->getMessage('general.placeholders.no_access_or_data') : ($this->getMessage('games.'.$p['mostRecentGameType']) ?? (' '.$p['mostRecentGameType'].' ')),
-						// TO TEST OUT THIS
 						empty($p['firstLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['firstLogin'], offset: $this->config->timezone_offset),
 						empty($p['lastLogin']) ? $this->getMessage('general.placeholders.no_access') : SpelakoUtils::formatTime($p['lastLogin'], offset: $this->config->timezone_offset),
 						$online ? (
