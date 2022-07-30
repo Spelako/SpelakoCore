@@ -79,9 +79,7 @@ class Spelako {
 			[
 				$this->core::VERSION,
 				$this->core::LAST_UPDATED,
-				$this->core::DEVELOPERS,
-				$this->core::WEBSITE,
-				$isStaff ? $this->getMessage('default.placeholder') : ''
+				$this->core::WEBSITE
 			]
 		);
 	}

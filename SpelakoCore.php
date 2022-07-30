@@ -20,10 +20,9 @@ require __DIR__.'/utils/FileSystem.php';
 require __DIR__.'/utils/SpelakoUtils.php';
 
 class SpelakoCore {
-	const VERSION = '22w07a';
-	const LAST_UPDATED = '2022/2/14';
-	const DEVELOPERS = 'github.com/orgs/Spelako/people';
-	const WEBSITE = 'spelako.github.io';
+	const VERSION = '22w30a';
+	const LAST_UPDATED = '2022/7/30';
+	const WEBSITE = 'https://spelako.github.io';
 
 	private array $commands = [];
 	private array $resources = [];

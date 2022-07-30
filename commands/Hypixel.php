@@ -134,8 +134,8 @@ class Hypixel {
 					$modeName = $this->getMessage('modes.all');
 				}
 				else if(
-					$modeName = $this->getMessage('modes.duels_'.$args[3])
-					|| $modeName = $this->getMessage('modes.duels_'.($args[3] .= '_duel'))
+					$modeName = $this->getMessage('modes.DUELS_'.strtoupper($args[3]))
+					|| $modeName = $this->getMessage('modes.DUELS_'.strtoupper($args[3] .= '_duel'))
 				) {
 					$keyAsPrefix = $args[3].'_';
 					$keyAsSuffix = '_'.$args[3];
@@ -146,7 +146,7 @@ class Hypixel {
 					$this->getMessage('duels.layout'),
 					[
 						$rank.$p['displayname'],
-						isset($args[3]) ? $this->getMessage('modes.duels'.$keyAsSuffix) : $this->getMessage('modes.all'),
+						isset($args[3]) ? $this->getMessage('modes.DUELS'.strtoupper($keyAsSuffix)) : $this->getMessage('modes.all'),
 						isset($args[3]) ? '' : SpelakoUtils::buildString(
 							$this->getMessage('duels.placeholders.general_stats'),
 							[
