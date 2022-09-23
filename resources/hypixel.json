@@ -345,9 +345,9 @@
 		},
 		"info": {
 			"request_failed": "查询请求发送超时或失败, 请稍后再试.",
-			"incomplete_json": "查询结果接收失败, 请稍后再试.",
+			"incomplete_json": "查询结果接收失败, 请稍后再试, 如果重复看到此信息, 则需要大约五分钟后再试.",
 			"player_not_found": "找不到此玩家, 请确认拼写无误.",
-			"rate_limit_reached": "该玩家需要一段冷却时间才能查询, 请一段时间后再试.",
+			"rate_limit_reached": "该玩家需要一段冷却时间才能查询, 请一段时间 (大约五分钟) 后再试.",
 			"learn_more": "此命令详细用法可在此处查看: %s/#help?id=hypixel"
 		},
 		"modes": {
